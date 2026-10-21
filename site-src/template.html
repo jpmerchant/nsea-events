@@ -1,1 +1,200 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NSEA Swim 2026-27 Events and Dates</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Oswald:wght@500;600&display=swap" rel="stylesheet">
+<style>
+:root{--teal:#008675;--teal-d:#006A5C;--coral:#ee492f;--coral-l:#FCE7E3;--gray:#676d70;--ink:#1d2528;--line:#d9dfe1;--bg:#fff;--soft:#f3f7f7;--chip:#fff}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--ink:#e8eeef;--line:#33403f;--bg:#121a1b;--soft:#1a2425;--chip:#121a1b;--gray:#9aa6a8;--coral-l:#3a2220}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 Inter,system-ui,sans-serif}
+.wrap{max-width:1200px;margin:0 auto;padding:16px}
+h2{font:600 28px/1.15 Oswald,Inter,sans-serif;margin:4px 0 6px;letter-spacing:.2px}
+.note{color:var(--gray);margin:0 0 16px;font-size:14px}
+.panel{background:var(--soft);border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:14px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.lbl{font:600 12px Inter;text-transform:uppercase;letter-spacing:.06em;color:var(--gray);min-width:72px}
+.fgrid{display:grid;gap:10px}
+input[type=search],select{font:inherit;padding:9px 11px;border:1px solid var(--line);border-radius:8px;background:var(--chip);color:var(--ink);min-width:0}
+input[type=search]{flex:1 1 220px}
+.chip{font:500 14px Inter;border:1px solid var(--line);background:var(--chip);color:var(--ink);padding:6px 11px;border-radius:999px;cursor:pointer}
+.chip[aria-pressed=true]{background:var(--teal);border-color:var(--teal);color:#fff}
+.chip:focus-visible,.btn:focus-visible,summary:focus-visible{outline:3px solid var(--coral);outline-offset:2px}
+.btn{font:600 14px Inter;border:1px solid var(--teal);color:var(--teal-d);background:var(--chip);padding:7px 12px;border-radius:8px;cursor:pointer;text-decoration:none;display:inline-block}
+.btn.primary{background:var(--teal);color:#fff}
+.btn:hover{filter:brightness(.95)}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]) .btn{color:#7fe0d2}}
+label.tog{display:inline-flex;gap:6px;align-items:center;font-size:14px}
+details summary{cursor:pointer;font-weight:600;font-size:14px}
+.count{font-weight:600}
+.month{font:600 20px Oswald,Inter,sans-serif;margin:22px 0 8px;padding-bottom:4px;border-bottom:2px solid var(--teal);color:var(--teal-d)}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]) .month{color:#7fe0d2}}
+.ev{display:grid;grid-template-columns:78px 1fr;gap:14px;padding:12px 0;border-bottom:1px solid var(--line)}
+.date{text-align:center;border:1px solid var(--line);border-radius:8px;padding:6px 4px;align-self:start;background:var(--soft)}
+.date b{display:block;font:600 22px/1.1 Oswald,sans-serif}
+.date span{font-size:12px;color:var(--gray);text-transform:uppercase;letter-spacing:.05em}
+.date.tbd b{font-size:15px}
+.ttl{font:600 18px/1.25 Inter;margin:0 0 4px}
+.badges{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0}
+.b{font:600 12px Inter;padding:2px 8px;border-radius:999px;border:1px solid var(--line)}
+.b.type{background:var(--teal);border-color:var(--teal);color:#fff}
+.b.type.deadline{background:var(--coral);border-color:var(--coral)}
+.b.type.schedule{background:var(--gray);border-color:var(--gray)}
+.b.type.team-event{background:var(--teal-d);border-color:var(--teal-d)}
+.b.tent{background:var(--coral-l);border-color:var(--coral);color:#a32a16}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]) .b.tent{color:#ff9d8c}}
+.meta{font-size:14px;color:var(--gray)}
+.meta a{color:var(--teal-d);font-weight:600}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]) .meta a{color:#7fe0d2}}
+.tags{font-size:12px;color:var(--gray);margin-top:4px}
+.acts{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.rev{background:#fff7d6;color:#5a4800;border:1px solid #e3c94b;border-radius:6px;padding:4px 8px;font-size:13px;margin-top:6px}
+.empty{padding:30px;text-align:center;color:var(--gray)}
+.sub select{flex:1 1 240px}
+@media (max-width:520px){.ev{grid-template-columns:62px 1fr;gap:10px}.lbl{min-width:100%}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h2>2026-27 Events &amp; Dates</h2>
+<p class="note">All dates are tentative and subject to change as the season gets closer. Filter below, add single events to Google Calendar, or subscribe to a feed that updates automatically.</p>
 
+<div class="panel fgrid" id="filters">
+  <div class="row"><input type="search" id="q" placeholder="Search events, venues, tags" aria-label="Search"><select id="month" aria-label="Month"></select></div>
+  <div class="row"><span class="lbl">Type</span><span class="row" id="f-type"></span></div>
+  <div class="row"><span class="lbl">Group</span><span class="row" id="f-group"></span></div>
+  <div class="row"><span class="lbl">Location</span><span class="row" id="f-loc"></span></div>
+  <details><summary>Tags</summary><div class="row" id="f-tag" style="margin-top:8px"></div></details>
+  <div class="row"><label class="tog"><input type="checkbox" id="past"> Show past events</label><label class="tog"><input type="checkbox" id="tbd" checked> Show events with dates still TBD</label><button class="btn" id="clear" type="button">Clear filters</button><span class="count" id="count" aria-live="polite"></span></div>
+</div>
+
+<div class="panel sub">
+  <div class="row"><span class="lbl">Calendar</span>
+    <select id="feed" aria-label="Calendar feed"></select>
+    <a class="btn primary" id="gsub" target="_blank" rel="noopener">Subscribe in Google Calendar</a>
+    <button class="btn" id="copy" type="button">Copy feed link</button>
+    <button class="btn" id="dl" type="button">Download .ics of current filters</button></div>
+  <p class="note" style="margin:8px 0 0">Subscribed calendars refresh on Google's schedule (usually within a day). Events without a confirmed date are not in the feeds until a date is set.</p>
+</div>
+
+<div id="list"></div>
+</div>
+
+<script>
+const DATA=/*EVENTS_PAYLOAD_HERE*/null;
+const $=s=>document.querySelector(s);
+const ADMIN=new URLSearchParams(location.search).has('admin');
+const MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const MONFULL=['January','February','March','April','May','June','July','August','September','October','November','December'];
+const todayStr=(()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')})();
+const E=DATA.events;
+const S={q:'',month:'',type:new Set(),group:new Set(),loc:new Set(),tag:new Set(),past:false,tbd:true};
+
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function mlabel(m){const [y,mo]=m.split('-');return MONFULL[+mo-1]+' '+y}
+function chips(el,items,set,key){
+  el.innerHTML=items.map(([v,l])=>`<button type="button" class="chip" data-k="${key}" data-v="${esc(v)}" aria-pressed="false">${esc(l)}</button>`).join('');
+}
+const types=Object.entries(DATA.typeLabels);
+chips($('#f-type'),types,S.type,'type');
+chips($('#f-group'),DATA.groups.map(g=>[g,g]),S.group,'group');
+const venues=[...new Map(E.filter(e=>e.venue).map(e=>[e.venue,e])).values()].sort((a,b)=>(b.home-a.home)||a.venueName.localeCompare(b.venueName));
+chips($('#f-loc'),[['__home','Home pool'],['__away','Away / travel'],...venues.filter(e=>!e.home&&e.venue!=='TBD').map(e=>[e.venue,e.venue+(e.venueCity&&e.venueCity.split(',')[0]!==e.venue?' - '+e.venueCity:'')])],S.loc,'loc');
+const tagCount={};E.forEach(e=>e.tags.forEach(t=>tagCount[t]=(tagCount[t]||0)+1));
+chips($('#f-tag'),Object.keys(tagCount).sort().map(t=>[t,t+' ('+tagCount[t]+')']),S.tag,'tag');
+const months=[...new Set(E.map(e=>e.month).filter(Boolean))].sort();
+$('#month').innerHTML='<option value="">All months</option>'+months.map(m=>`<option value="${m}">${mlabel(m)}</option>`).join('');
+$('#feed').innerHTML=DATA.feeds.map(f=>`<option value="${f.file}">${esc(f.label)} (${f.n})</option>`).join('');
+
+function fmtDate(e){
+  if(e.precision!=='day')return {a:'TBD',b:MON[+e.month.slice(5)-1]||'',cls:' tbd'};
+  const [y1,m1,d1]=e.start.split('-').map(Number),[y2,m2,d2]=e.end.split('-').map(Number);
+  if(e.start===e.end)return {a:d1,b:MON[m1-1]};
+  if(m1===m2)return {a:d1+'-'+d2,b:MON[m1-1]};
+  return {a:d1+' - '+d2,b:MON[m1-1]+'/'+MON[m2-1]};
+}
+function match(e){
+  if(!S.past&&e.precision==='day'&&e.end<todayStr)return false;
+  if(!S.past&&e.precision!=='day'&&e.month<todayStr.slice(0,7))return false;
+  if(!S.tbd&&e.precision!=='day')return false;
+  if(S.month&&e.month!==S.month&&!(e.precision==='day'&&e.start.slice(0,7)<=S.month&&e.end.slice(0,7)>=S.month))return false;
+  if(S.type.size&&!S.type.has(e.type))return false;
+  if(S.group.size&&!(e.groupsAll||e.groups.some(g=>S.group.has(g))))return false;
+  if(S.loc.size){const ok=[...S.loc].some(v=>v==='__home'?e.home:v==='__away'?(!!e.venue&&!e.home&&e.venue!=='TBD'):e.venue===v);if(!ok)return false}
+  if(S.tag.size&&![...S.tag].every(t=>e.tags.includes(t)))return false;
+  if(S.q){const h=(e.title+' '+e.venueName+' '+e.venueCity+' '+e.venue+' '+e.tags.join(' ')+' '+e.eligibility+' '+e.description+' '+e.groups.join(' ')).toLowerCase();
+    if(!S.q.toLowerCase().split(/\s+/).every(w=>h.includes(w)))return false}
+  return true;
+}
+function card(e){
+  const d=fmtDate(e);
+  const grp=e.groupsAll?'All groups':e.groups.join(' / ');
+  const loc=e.venue&&e.venue!=='TBD'?`<div class="meta">${esc(e.venueName)}${e.venueCity?', '+esc(e.venueCity):''}${e.mapGoogle?` &middot; <a href="${e.mapGoogle}" target="_blank" rel="noopener">Google Maps</a> &middot; <a href="${e.mapApple}" target="_blank" rel="noopener">Apple Maps</a>`:''}</div>`
+    :(e.venue==='TBD'?'<div class="meta">Location TBD</div>':'');
+  return `<article class="ev"><div class="date${d.cls||''}"><b>${esc(d.a)}</b><span>${esc(d.b)}</span></div><div>
+  <h3 class="ttl">${esc(e.title)}</h3>
+  <div class="badges"><span class="b type ${e.type}">${esc(e.typeLabel)}</span>${e.status==='Tentative'?'<span class="b tent">Tentative</span>':''}${e.precision!=='day'?'<span class="b tent">Date TBD</span>':''}<span class="b">${esc(grp)}</span>${e.eligibility?`<span class="b">${esc(e.eligibility)}</span>`:''}</div>
+  ${loc}${e.description?`<div class="meta">${esc(e.description)}</div>`:''}
+  ${e.tags.length?`<div class="tags">${e.tags.map(t=>'#'+esc(t)).join(' ')}</div>`:''}
+  <div class="acts">${e.addToGoogle?`<a class="btn" href="${e.addToGoogle}" target="_blank" rel="noopener">Add to Google Calendar</a>`:''}${e.link?`<a class="btn" href="${esc(e.link)}" target="_blank" rel="noopener">Details</a>`:''}</div>
+  ${ADMIN&&e.needsReview?`<div class="rev"><b>Review:</b> ${esc(e.reviewNote)}</div>`:''}
+  </div></article>`;
+}
+function render(){
+  const f=E.filter(match);
+  $('#count').textContent=f.length+' of '+E.length+' events';
+  if(!f.length){$('#list').innerHTML='<div class="empty">No events match these filters.</div>';return}
+  let out='',cur='';
+  for(const e of f){if(e.month!==cur){cur=e.month;out+=`<h3 class="month">${mlabel(cur)}</h3>`}out+=card(e)}
+  $('#list').innerHTML=out;
+  document.querySelectorAll('.chip').forEach(b=>b.setAttribute('aria-pressed',S[b.dataset.k].has(b.dataset.v)));
+  saveHash();
+}
+function saveHash(){
+  const p=new URLSearchParams();
+  if(S.q)p.set('q',S.q);if(S.month)p.set('m',S.month);
+  for(const k of ['type','group','loc','tag'])if(S[k].size)p.set(k,[...S[k]].join(','));
+  if(S.past)p.set('past','1');if(!S.tbd)p.set('tbd','0');
+  try{history.replaceState(null,'',(p.toString()?'#'+p:location.pathname+location.search))}catch(e){}
+}
+function loadHash(){
+  const p=new URLSearchParams(location.hash.slice(1));
+  S.q=p.get('q')||'';S.month=p.get('m')||'';
+  for(const k of ['type','group','loc','tag'])S[k]=new Set((p.get(k)||'').split(',').filter(Boolean));
+  S.past=p.get('past')==='1';S.tbd=p.get('tbd')!=='0';
+  $('#q').value=S.q;$('#month').value=S.month;$('#past').checked=S.past;$('#tbd').checked=S.tbd;
+}
+document.addEventListener('click',ev=>{const b=ev.target.closest('.chip');if(!b)return;
+  const s=S[b.dataset.k],v=b.dataset.v;
+  if(b.dataset.k==='loc'&&(v==='__home'||v==='__away')){s.delete(v==='__home'?'__away':'__home')}
+  s.has(v)?s.delete(v):s.add(v);render()});
+$('#q').addEventListener('input',e=>{S.q=e.target.value.trim();render()});
+$('#month').addEventListener('change',e=>{S.month=e.target.value;render()});
+$('#past').addEventListener('change',e=>{S.past=e.target.checked;render()});
+$('#tbd').addEventListener('change',e=>{S.tbd=e.target.checked;render()});
+$('#clear').addEventListener('click',()=>{S.q='';S.month='';S.past=false;S.tbd=true;for(const k of ['type','group','loc','tag'])S[k].clear();$('#q').value='';$('#month').value='';$('#past').checked=false;$('#tbd').checked=true;render()});
+
+function feedUrl(){return new URL('feeds/'+$('#feed').value,location.href).href}
+function updSub(){const u=feedUrl();$('#gsub').href='https://calendar.google.com/calendar/r?cid='+encodeURIComponent(u.replace(/^https?:/,'webcal:'))}
+$('#feed').addEventListener('change',updSub);
+$('#copy').addEventListener('click',async()=>{const b=$('#copy');try{await navigator.clipboard.writeText(feedUrl());b.textContent='Copied'}catch(e){window.prompt('Copy this link',feedUrl())}setTimeout(()=>b.textContent='Copy feed link',1500)});
+const icsEsc=s=>String(s).replace(/\\/g,'\\\\').replace(/;/g,'\;').replace(/,/g,'\\,').replace(/\n/g,'\\n');
+const ymd=s=>s.replace(/-/g,'');
+function nextDay(s){const d=new Date(s+'T00:00:00Z');d.setUTCDate(d.getUTCDate()+1);return d.toISOString().slice(0,10)}
+$('#dl').addEventListener('click',()=>{
+  const evs=E.filter(match).filter(e=>e.precision==='day');
+  const st=new Date().toISOString().replace(/[-:]/g,'').replace(/\.\d+/,'');
+  const L=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//NSEA Swim//Filtered export//EN','CALSCALE:GREGORIAN','X-WR-CALNAME:NSEA Swim (filtered)'];
+  evs.forEach(e=>{L.push('BEGIN:VEVENT','UID:'+e.id+'@nseaswimteam.com','DTSTAMP:'+st,'DTSTART;VALUE=DATE:'+ymd(e.start),'DTEND;VALUE=DATE:'+ymd(nextDay(e.end)),'SUMMARY:'+icsEsc(e.title),'STATUS:'+(e.status==='Tentative'?'TENTATIVE':'CONFIRMED'),'TRANSP:TRANSPARENT');
+    if(e.location)L.push('LOCATION:'+icsEsc(e.location));
+    L.push('DESCRIPTION:'+icsEsc([e.eligibility&&'Eligibility: '+e.eligibility,e.description].filter(Boolean).join('\n')),'END:VEVENT')});
+  L.push('END:VCALENDAR');
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([L.join('\r\n')+'\r\n'],{type:'text/calendar'}));a.download='nsea-swim-filtered.ics';document.body.appendChild(a);a.click();a.remove();
+});
+loadHash();updSub();render();
+</script>
+</body>
+</html>
