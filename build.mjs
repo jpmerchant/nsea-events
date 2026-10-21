@@ -13,10 +13,7 @@ function parseCSV(t){const rows=[];let row=[],f='',q=false;
   const [h,...b]=rows;return b.filter(r=>r.some(x=>x)).map(r=>Object.fromEntries(h.map((k,i)=>[k,(r[i]||'').trim()])))}
 const list=s=>s?s.split(';').map(x=>x.trim()).filter(Boolean):[];
 
-// Optional: pull from published Google Sheet CSVs (File > Share > Publish to web > CSV)
-async function src(env,file){const u=process.env[env];if(!u)return fs.readFileSync(file,'utf8');
-  const r=await fetch(u);if(!r.ok){console.error('Fetch failed for '+env+': '+r.status);process.exit(1)}const t=await r.text();fs.writeFileSync(file,t);return t}
-const EVENTS_CSV=await src('EVENTS_CSV_URL','data/events.csv'),VENUES_CSV=await src('VENUES_CSV_URL','data/venues.csv');
+const EVENTS_CSV=fs.readFileSync('data/events.csv','utf8'),VENUES_CSV=fs.readFileSync('data/venues.csv','utf8');
 const venues=Object.fromEntries(parseCSV(VENUES_CSV).map(v=>[v.key,v]));
 const rows=parseCSV(EVENTS_CSV);
 
@@ -79,4 +76,5 @@ const payload={built:new Date().toISOString(),groups:GROUPS,typeLabels:TYPE_LABE
 fs.writeFileSync('site/events.json',JSON.stringify(payload,null,1));
 const tpl=fs.readFileSync('site-src/template.html','utf8');
 fs.writeFileSync('site/index.html',tpl.replace('/*EVENTS_PAYLOAD_HERE*/null',()=>JSON.stringify(payload)));
+fs.mkdirSync('site/admin',{recursive:true});fs.copyFileSync('site-src/admin.html','site/admin/index.html');
 console.log(`${events.length} events (${events.filter(e=>e.precision==='day').length} dated), ${feeds.length} feeds, ${events.filter(e=>e.needsReview).length} flagged`);
