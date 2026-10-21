@@ -2,9 +2,9 @@ id,title,start,end,precision,month_hint,type,groups,eligibility,venue,status,tag
 senior-surge-start,Senior Surge Begins Practice,2026-08-24,2026-08-24,day,,schedule,Senior,,EJP,Tentative,home,,,,
 new-family-orientation,New Family Orientation,2026-08-25,2026-08-26,day,,team-event,All,,EJP,Tentative,home;new-families,Listed as separate Aug 25 and Aug 26 sessions.,,,
 welcome-picnic,Welcome Picnic,2026-08-31,2026-08-31,day,,team-event,All,,EJP,Tentative,home;social,,,,
-bac-kickoff-classic,NSEA v BAC Kick Off Classic,2026-09-18,2026-09-19,day,,meet,All,,EJP,Tentative,dual;home,,,yes,Events page lists 9/18 only; meet calendar lists 9/18-9/19.
+bac-kickoff-classic,NSEA v BAC Kick Off Classic,2026-09-18,2026-09-19,day,,meet,All,,EJP,Confirmed,dual;home,,,,
 intersquad-oct,Team Intersquad,2026-10-09,2026-10-09,day,,meet,All,,EJP,Tentative,intersquad;home,,,,
-bac-halloween-bash,BAC Halloween Bash,2026-10-30,2026-11-01,day,,meet,All,,BCC,Tentative,invitational;travel,,,yes,"Events page says @ BAC; meet-pools page lists BAC as Dinah E. Gore Fitness & Aquatics Center, Bolivia."
+bac-halloween-bash,BAC Halloween Bash,2026-10-30,2026-11-01,day,,meet,All,,BCC,Confirmed,invitational;travel,,,,
 game-turkey-invitational,GAME Turkey Invitational,2026-11-13,2026-11-15,day,,meet,Breakers;Surge;Senior,,USC,Tentative,invitational;travel;overnight,,,,
 thanksgiving-practice,Thanksgiving Practice Schedule,2026-11-24,2026-11-29,day,,schedule,All,,,Tentative,holiday,See the holiday practice schedule sheet.,https://docs.google.com/spreadsheets/d/1PnEukw-c0GVkrEFhYK4A-sXXShC2Vg6AnqlF0ztQx6Y/edit?usp=sharing,yes,"Source says 'Monday 11/24', but 11/24/2026 is a Tuesday. Confirm start date (11/23?)."
 us-open,US Open,2026-12-02,2026-12-05,day,,meet,All,Qualified swimmers,UT-Austin,Tentative,national;travel;overnight;qualifier,,,,
@@ -31,18 +31,18 @@ sz-open-water,Southern Zone Open Water Championships,2027-04-23,2027-04-25,day,,
 wave-lcm,WAVE Sprint into LCM,2027-04-24,2027-04-25,day,,meet,All,,TAC,Tentative,lcm;travel,,,,
 spring-showers-wow,Spring Showers WOW Dual Meet,2027-04-30,2027-04-30,day,,meet,Splash;Tidepool;Riptide,,EJP,Tentative,dual;home;wow,,,,
 summer-optout,Summer Opt-Out Deadline,2027-05-01,2027-05-01,day,,deadline,All,,,Tentative,deadline,,,,
-team-lcm-may,Team LCM Meet,,,month,2027-05,meet,All,,TBD,Tentative,lcm,,,yes,Month only. Assumed same as 'May LCM Meet' on the meet calendar page (venue TBD).
-charlotte-open,Martha McKee Charlotte Open,,,month,2027-05,meet,All,Qualified swimmers,MCAC,Tentative,lcm;qualifier;travel,,,yes,No dates on either page. Assumed this is the 'Qualifier Meet LCM' (May) from the events page.
 may-flowers-wow,May Flowers WOW Dual Meet,2027-05-20,2027-05-20,day,,meet,Splash;Tidepool;Riptide,,EJP,Tentative,dual;home;wow,,,,
 summer-session-begins,Summer Session Begins,2027-05-31,2027-05-31,day,,schedule,All,,,Tentative,,,,,
+team-lcm-may,Team LCM Meet,,,month,2027-05,meet,All,,TBD,Tentative,lcm,,,yes,Month only. Assumed same as 'May LCM Meet' on the meet calendar page (venue TBD).
+charlotte-open,Martha McKee Charlotte Open,,,month,2027-05,meet,All,Qualified swimmers,MCAC,Tentative,lcm;qualifier;travel,,,yes,No dates on either page. Assumed this is the 'Qualifier Meet LCM' (May) from the events page.
 intent-deadline,2027-28 Season Intent Deadline,2027-06-01,2027-06-01,day,,deadline,All,,,Tentative,deadline,,,,
 summer-practice-begins,Summer Practice Schedule Begins,2027-06-07,2027-06-07,day,,schedule,All,,,Tentative,,,,,
 summer-nationals,USA Swimming Summer Nationals,2027-06-08,2027-06-12,day,,meet,All,Qualified swimmers,Indy,Tentative,national;travel;overnight;qualifier,,,,
 game-summer-invitational,GAME Summer Invitational,2027-06-11,2027-06-13,day,,meet,Breakers;Surge;Senior,,USC,Tentative,invitational;travel;overnight,,,,
 nc-senior-lcm,NC Senior LCM Championships,2027-07-08,2027-07-11,day,,meet,All,Qualified swimmers,TAC,Tentative,championship;lcm;qualifier;travel;overnight,,,,
 nc-ag-lcm,NC Age Group LCM Championships,2027-07-15,2027-07-18,day,,meet,All,14 & Under qualified swimmers,GAC,Tentative,championship;lcm;qualifier;travel;overnight,,,yes,Events page says 'qualified swimmers'; meet calendar says 14 & Under. Used 14 & Under.
-optout-2728,2027-28 Season Opt-Out Deadline,,,month,2027-07,deadline,All,,,Tentative,deadline,,,yes,No day given.
-wow-summer-spectacular,WOW Summer Spectacular,,,month,2027-07,meet,All,All swimmers not going to Futures or Junior Nationals,UNCW,Tentative,wow;lcm;local,Events page calls this 'WOW Summer Sizzler'.,,yes,No dates. Two names across the pages; confirm which is correct.
 last-day-season,Last Day of the 2026-27 Season,2027-07-27,2027-07-27,day,,schedule,All,,,Tentative,,,,,
 tyr-futures,TYR Futures Championships,2027-07-28,2027-07-31,day,,meet,All,Qualified swimmers,FAST,Tentative,national;travel;overnight;qualifier,,,,
+optout-2728,2027-28 Season Opt-Out Deadline,,,month,2027-07,deadline,All,,,Tentative,deadline,,,yes,No day given.
+wow-summer-spectacular,WOW Summer Spectacular,,,month,2027-07,meet,All,All swimmers not going to Futures or Junior Nationals,UNCW,Tentative,wow;lcm;local,Events page calls this 'WOW Summer Sizzler'.,,yes,No dates. Two names across the pages; confirm which is correct.
 junior-nationals,Speedo Summer Juniors (USA Swimming Junior Nationals),2027-08-02,2027-08-08,day,,meet,All,Qualified swimmers,Huntsville,Tentative,national;travel;overnight;qualifier,,,yes,Events page: 8/2-8/8. Meet calendar: 8/2-8/6. Used events page.
