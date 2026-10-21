@@ -1,0 +1,336 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//NSEA Swim//Events 2026-27//EN
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+X-WR-CALNAME:NSEA Swim 2026-27 - Meets only
+X-WR-TIMEZONE:America/New_York
+REFRESH-INTERVAL;VALUE=DURATION:PT6H
+X-PUBLISHED-TTL:PT6H
+BEGIN:VEVENT
+UID:bac-kickoff-classic@nseaswimteam.com
+DTSTAMP:20261021T141830Z
+DTSTART;VALUE=DATE:20260918
+DTEND;VALUE=DATE:20260920
+SUMMARY:NSEA v BAC Kick Off Classic
+STATUS:TENTATIVE
+TRANSP:TRANSPARENT
+CATEGORIES:Meet,dual,home
+DESCRIPTION:Groups: All groups\nDates are tentative and subject to change.
+LOCATION:Earl Jackson Pool - 750 Bess St\, Wilmington\, NC 28401
+END:VEVENT
+BEGIN:VEVENT
+UID:intersquad-oct@nseaswimteam.com
+DTSTAMP:20261021T141830Z
+DTSTART;VALUE=DATE:20261009
+DTEND;VALUE=DATE:20261010
+SUMMARY:Team Intersquad
+STATUS:TENTATIVE
+TRANSP:TRANSPARENT
+CATEGORIES:Meet,intersquad,home
+DESCRIPTION:Groups: All groups\nDates are tentative and subject to change.
+LOCATION:Earl Jackson Pool - 750 Bess St\, Wilmington\, NC 28401
+END:VEVENT
+BEGIN:VEVENT
+UID:bac-halloween-bash@nseaswimteam.com
+DTSTAMP:20261021T141830Z
+DTSTART;VALUE=DATE:20261030
+DTEND;VALUE=DATE:20261102
+SUMMARY:BAC Halloween Bash
+STATUS:TENTATIVE
+TRANSP:TRANSPARENT
+CATEGORIES:Meet,invitational,travel
+DESCRIPTION:Groups: All groups\nDates are tentative and subject to change.
+LOCATION:Dinah E. Gore Fitness & Aquatics Center (Brunswick CC) - 210 Colle
+ ge Rd NE\, Bolivia\, NC 28422
+END:VEVENT
+BEGIN:VEVENT
+UID:game-turkey-invitational@nseaswimteam.com
+DTSTAMP:20261021T141830Z
+DTSTART;VALUE=DATE:20261113
+DTEND;VALUE=DATE:20261116
+SUMMARY:GAME Turkey Invitational
+STATUS:TENTATIVE
+TRANSP:TRANSPARENT
+CATEGORIES:Meet,invitational,travel,overnight
+DESCRIPTION:Groups: Breakers\, Surge\, Senior\nDates are tentative and subj
+ ect to change.
+LOCATION:Carolina Natatorium (Univ. of South Carolina) - 1300 Wheat St\, Co
+ lumbia\, SC 29208
+END:VEVENT
+BEGIN:VEVENT
+UID:us-open@nseaswimteam.com
+DTSTAMP:20261021T141830Z
+DTSTART;VALUE=DATE:20261202
+DTEND;VALUE=DATE:20261206
+SUMMARY:US Open
+STATUS:TENTATIVE
+TRANSP:TRANSPARENT
+CATEGORIES:Meet,national,travel,overnight,qualifier
+DESCRIPTION:Eligibility: Qualified swimmers\nGroups: All groups\nDates are 
+ tentative and subject to change.
+LOCATION:Lee and Joe Jamail Texas Swimming Center - 1900 Red River St\, Aus
+ tin\, TX 78712
+END:VEVENT
+BEGIN:VEVENT
+UID:winter-juniors-east@nseaswimteam.com
+DTSTAMP:20261021T141830Z
+DTSTART;VALUE=DATE:20261209
+DTEND;VALUE=DATE:20261213
+SUMMARY:Winter Junior Nationals - East
+STATUS:TENTATIVE
+TRANSP:TRANSPARENT
+CATEGORIES:Meet,national,travel,overnight,qualifier
+DESCRIPTION:Eligibility: Qualified swimmers\nGroups: All groups\nDates are 
+ tentative and subject to change.
+LOCATION:IU Natatorium - 901 W New York St\, Indianapolis\, IN 46202
+END:VEVENT
+BEGIN:VEVENT
+UID:star-triad-tropic@nseaswimteam.com
+DTSTAMP:20261021T141830Z
+DTSTART;VALUE=DATE:20261211
+DTEND;VALUE=DATE:20261214
+SUMMARY:STAR Triad Tropic
+STATUS:TENTATIVE
+TRANSP:TRANSPARENT
+CATEGORIES:Meet,invitational,travel,overnight
+DESCRIPTION:Groups: All groups\nDates are tentative and subject to change.
+LOCATION:Greensboro Aquatic Center - 1921 W Gate City Blvd\, Greensboro\, N
+ C 27403
+END:VEVENT
+BEGIN:VEVENT
+UID:intersquad-jan@nseaswimteam.com
+DTSTAMP:20261021T141830Z
+DTSTART;VALUE=DATE:20270108
+DTEND;VALUE=DATE:20270109
+SUMMARY:Team Intersquad
+STATUS:TENTATIVE
+TRANSP:TRANSPARENT
+CATEGORIES:Meet,intersquad,home
+DESCRIPTION:Groups: All groups\nDates are tentative and subject to change.
+LOCATION:Earl Jackson Pool - 750 Bess St\, Wilmington\, NC 28401
+END:VEVENT
+BEGIN:VEVENT
+UID:nchsaa-regionals@nseaswimteam.com
+DTSTAMP:20261021T141830Z
+DTSTART;VALUE=DATE:20270129
+DTEND;VALUE=DATE:20270131
+SUMMARY:NCHSAA Regionals
+STATUS:TENTATIVE
+TRANSP:TRANSPARENT
+CATEGORIES:Meet,high-school
+DESCRIPTION:Groups: All groups\nDates are tentative and subject to change.
+END:VEVENT
+BEGIN:VEVENT
+UID:nchsaa-state@nseaswimteam.com
+DTSTAMP:20261021T141830Z
+DTSTART;VALUE=DATE:20270204
+DTEND;VALUE=DATE:20270207
+SUMMARY:NCHSAA State Championships
+STATUS:TENTATIVE
+TRANSP:TRANSPARENT
+CATEGORIES:Meet,high-school,championship
+DESCRIPTION:Groups: All groups\nWeather permitting.\nDates are tentative an
+ d subject to change.
+END:VEVENT
+BEGIN:VEVENT
+UID:bac-cupid-qualifier@nseaswimteam.com
+DTSTAMP:20261021T141830Z
+DTSTART;VALUE=DATE:20270205
+DTEND;VALUE=DATE:20270208
+SUMMARY:BAC Cupid Qualifier
+STATUS:TENTATIVE
+TRANSP:TRANSPARENT
+CATEGORIES:Meet,qualifier,travel,overnight
+DESCRIPTION:Eligibility: All non-championship swimmers\nGroups: All groups\
+ nDates are tentative and subject to change.
+LOCATION:Dinah E. Gore Fitness & Aquatics Center (Brunswick CC) - 210 Colle
+ ge Rd NE\, Bolivia\, NC 28422
+END:VEVENT
+BEGIN:VEVENT
+UID:nc-ag-champs-scy@nseaswimteam.com
+DTSTAMP:20261021T141830Z
+DTSTART;VALUE=DATE:20270218
+DTEND;VALUE=DATE:20270222
+SUMMARY:NC Age Group Championships
+STATUS:TENTATIVE
+TRANSP:TRANSPARENT
+CATEGORIES:Meet,championship,qualifier,travel,overnight
+DESCRIPTION:Eligibility: 14 & Under qualifying swimmers\nGroups: All groups
+ \nDates are tentative and subject to change.
+LOCATION:Triangle Aquatic Center - 275 Convention Dr\, Cary\, NC 27511
+END:VEVENT
+BEGIN:VEVENT
+UID:nc-senior-champs-scy@nseaswimteam.com
+DTSTAMP:20261021T141830Z
+DTSTART;VALUE=DATE:20270225
+DTEND;VALUE=DATE:20270301
+SUMMARY:NC Senior Championships
+STATUS:TENTATIVE
+TRANSP:TRANSPARENT
+CATEGORIES:Meet,championship,qualifier,travel,overnight
+DESCRIPTION:Eligibility: 15 & Over qualifying swimmers\nGroups: All groups\
+ nDates are tentative and subject to change.
+LOCATION:Triangle Aquatic Center - 275 Convention Dr\, Cary\, NC 27511
+END:VEVENT
+BEGIN:VEVENT
+UID:wow-tri-county@nseaswimteam.com
+DTSTAMP:20261021T141830Z
+DTSTART;VALUE=DATE:20270306
+DTEND;VALUE=DATE:20270308
+SUMMARY:WOW Tri-County Classic
+STATUS:TENTATIVE
+TRANSP:TRANSPARENT
+CATEGORIES:Meet,invitational,local
+DESCRIPTION:Groups: Splash\, Tidepool\, Riptide\nMeet calendar lists this a
+ s 'WOW March'.\nDates are tentative and subject to change.
+LOCATION:David B. Allen Natatorium (UNCW) - 690 Hamilton Dr\, Wilmington\, 
+ NC 28403
+END:VEVENT
+BEGIN:VEVENT
+UID:star-tar-heel-states@nseaswimteam.com
+DTSTAMP:20261021T141830Z
+DTSTART;VALUE=DATE:20270312
+DTEND;VALUE=DATE:20270315
+SUMMARY:STAR Tar Heel States
+STATUS:TENTATIVE
+TRANSP:TRANSPARENT
+CATEGORIES:Meet,invitational,travel,overnight
+DESCRIPTION:Groups: Breakers\, Surge\, Senior\nDates are tentative and subj
+ ect to change.
+LOCATION:Greensboro Aquatic Center - 1921 W Gate City Blvd\, Greensboro\, N
+ C 27403
+END:VEVENT
+BEGIN:VEVENT
+UID:carolina-crown@nseaswimteam.com
+DTSTAMP:20261021T141830Z
+DTSTART;VALUE=DATE:20270411
+DTEND;VALUE=DATE:20270412
+SUMMARY:NC / SC Carolina Crown
+STATUS:TENTATIVE
+TRANSP:TRANSPARENT
+CATEGORIES:Meet,selection,travel
+DESCRIPTION:Eligibility: Invited 15 & Over swimmers\nGroups: All groups\nSe
+ lection process.\nDates are tentative and subject to change.
+END:VEVENT
+BEGIN:VEVENT
+UID:wave-lcm@nseaswimteam.com
+DTSTAMP:20261021T141830Z
+DTSTART;VALUE=DATE:20270424
+DTEND;VALUE=DATE:20270426
+SUMMARY:WAVE Sprint into LCM
+STATUS:TENTATIVE
+TRANSP:TRANSPARENT
+CATEGORIES:Meet,lcm,travel
+DESCRIPTION:Groups: All groups\nDates are tentative and subject to change.
+LOCATION:Triangle Aquatic Center - 275 Convention Dr\, Cary\, NC 27511
+END:VEVENT
+BEGIN:VEVENT
+UID:spring-showers-wow@nseaswimteam.com
+DTSTAMP:20261021T141830Z
+DTSTART;VALUE=DATE:20270430
+DTEND;VALUE=DATE:20270501
+SUMMARY:Spring Showers WOW Dual Meet
+STATUS:TENTATIVE
+TRANSP:TRANSPARENT
+CATEGORIES:Meet,dual,home,wow
+DESCRIPTION:Groups: Splash\, Tidepool\, Riptide\nDates are tentative and su
+ bject to change.
+LOCATION:Earl Jackson Pool - 750 Bess St\, Wilmington\, NC 28401
+END:VEVENT
+BEGIN:VEVENT
+UID:may-flowers-wow@nseaswimteam.com
+DTSTAMP:20261021T141830Z
+DTSTART;VALUE=DATE:20270520
+DTEND;VALUE=DATE:20270521
+SUMMARY:May Flowers WOW Dual Meet
+STATUS:TENTATIVE
+TRANSP:TRANSPARENT
+CATEGORIES:Meet,dual,home,wow
+DESCRIPTION:Groups: Splash\, Tidepool\, Riptide\nDates are tentative and su
+ bject to change.
+LOCATION:Earl Jackson Pool - 750 Bess St\, Wilmington\, NC 28401
+END:VEVENT
+BEGIN:VEVENT
+UID:summer-nationals@nseaswimteam.com
+DTSTAMP:20261021T141830Z
+DTSTART;VALUE=DATE:20270608
+DTEND;VALUE=DATE:20270613
+SUMMARY:USA Swimming Summer Nationals
+STATUS:TENTATIVE
+TRANSP:TRANSPARENT
+CATEGORIES:Meet,national,travel,overnight,qualifier
+DESCRIPTION:Eligibility: Qualified swimmers\nGroups: All groups\nDates are 
+ tentative and subject to change.
+LOCATION:IU Natatorium - 901 W New York St\, Indianapolis\, IN 46202
+END:VEVENT
+BEGIN:VEVENT
+UID:game-summer-invitational@nseaswimteam.com
+DTSTAMP:20261021T141830Z
+DTSTART;VALUE=DATE:20270611
+DTEND;VALUE=DATE:20270614
+SUMMARY:GAME Summer Invitational
+STATUS:TENTATIVE
+TRANSP:TRANSPARENT
+CATEGORIES:Meet,invitational,travel,overnight
+DESCRIPTION:Groups: Breakers\, Surge\, Senior\nDates are tentative and subj
+ ect to change.
+LOCATION:Carolina Natatorium (Univ. of South Carolina) - 1300 Wheat St\, Co
+ lumbia\, SC 29208
+END:VEVENT
+BEGIN:VEVENT
+UID:nc-senior-lcm@nseaswimteam.com
+DTSTAMP:20261021T141830Z
+DTSTART;VALUE=DATE:20270708
+DTEND;VALUE=DATE:20270712
+SUMMARY:NC Senior LCM Championships
+STATUS:TENTATIVE
+TRANSP:TRANSPARENT
+CATEGORIES:Meet,championship,lcm,qualifier,travel,overnight
+DESCRIPTION:Eligibility: Qualified swimmers\nGroups: All groups\nDates are 
+ tentative and subject to change.
+LOCATION:Triangle Aquatic Center - 275 Convention Dr\, Cary\, NC 27511
+END:VEVENT
+BEGIN:VEVENT
+UID:nc-ag-lcm@nseaswimteam.com
+DTSTAMP:20261021T141830Z
+DTSTART;VALUE=DATE:20270715
+DTEND;VALUE=DATE:20270719
+SUMMARY:NC Age Group LCM Championships
+STATUS:TENTATIVE
+TRANSP:TRANSPARENT
+CATEGORIES:Meet,championship,lcm,qualifier,travel,overnight
+DESCRIPTION:Eligibility: 14 & Under qualified swimmers\nGroups: All groups\
+ nDates are tentative and subject to change.
+LOCATION:Greensboro Aquatic Center - 1921 W Gate City Blvd\, Greensboro\, N
+ C 27403
+END:VEVENT
+BEGIN:VEVENT
+UID:tyr-futures@nseaswimteam.com
+DTSTAMP:20261021T141830Z
+DTSTART;VALUE=DATE:20270728
+DTEND;VALUE=DATE:20270801
+SUMMARY:TYR Futures Championships
+STATUS:TENTATIVE
+TRANSP:TRANSPARENT
+CATEGORIES:Meet,national,travel,overnight,qualifier
+DESCRIPTION:Eligibility: Qualified swimmers\nGroups: All groups\nDates are 
+ tentative and subject to change.
+LOCATION:FAST (Florida Aquatic Swimming Training) - 4635 SW 67th Ave Rd\, O
+ cala\, FL 34474
+END:VEVENT
+BEGIN:VEVENT
+UID:junior-nationals@nseaswimteam.com
+DTSTAMP:20261021T141830Z
+DTSTART;VALUE=DATE:20270802
+DTEND;VALUE=DATE:20270809
+SUMMARY:Speedo Summer Juniors (USA Swimming Junior Nationals)
+STATUS:TENTATIVE
+TRANSP:TRANSPARENT
+CATEGORIES:Meet,national,travel,overnight,qualifier
+DESCRIPTION:Eligibility: Qualified swimmers\nGroups: All groups\nDates are 
+ tentative and subject to change.
+LOCATION:Huntsville Aquatics Center - 2213 Drake Ave SW\, Huntsville\, AL 3
+ 5805
+END:VEVENT
+END:VCALENDAR
