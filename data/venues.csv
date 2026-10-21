@@ -1,0 +1,13 @@
+key,name,city,state,address,map_query,home,verified
+EJP,Earl Jackson Pool,Wilmington,NC,"750 Bess St, Wilmington, NC 28401","Earl Jackson Pool, 750 Bess St, Wilmington, NC 28401",yes,yes
+BCC,Dinah E. Gore Fitness & Aquatics Center (Brunswick CC),Bolivia,NC,"210 College Rd NE, Bolivia, NC 28422","Dinah E. Gore Fitness & Aquatics Center, 210 College Rd NE, Bolivia, NC 28422",no,yes
+USC,Carolina Natatorium (Univ. of South Carolina),Columbia,SC,"1300 Wheat St, Columbia, SC 29208","Carolina Natatorium, 1300 Wheat St, Columbia, SC 29208",no,yes
+TAC,Triangle Aquatic Center,Cary,NC,"275 Convention Dr, Cary, NC 27511","Triangle Aquatic Center, 275 Convention Dr, Cary, NC 27511",no,yes
+GAC,Greensboro Aquatic Center,Greensboro,NC,"1921 W Gate City Blvd, Greensboro, NC 27403","Greensboro Aquatic Center, 1921 W Gate City Blvd, Greensboro, NC 27403",no,yes
+MCAC,Mecklenburg County Aquatic Center,Charlotte,NC,"800 E Martin Luther King Jr Blvd, Charlotte, NC 28202","Mecklenburg County Aquatic Center, 800 E Martin Luther King Jr Blvd, Charlotte, NC 28202",no,yes
+UNCW,David B. Allen Natatorium (UNCW),Wilmington,NC,"690 Hamilton Dr, Wilmington, NC 28403","David B. Allen Natatorium, 690 Hamilton Dr, Wilmington, NC 28403",no,yes
+Indy,IU Natatorium,Indianapolis,IN,"901 W New York St, Indianapolis, IN 46202","IU Natatorium, 901 W New York St, Indianapolis, IN 46202",no,yes
+UT-Austin,Lee and Joe Jamail Texas Swimming Center,Austin,TX,"1900 Red River St, Austin, TX 78712","Lee and Joe Jamail Texas Swimming Center, 1900 Red River St, Austin, TX 78712",no,yes
+FAST,FAST (Florida Aquatic Swimming Training),Ocala,FL,"4635 SW 67th Ave Rd, Ocala, FL 34474","4635 SW 67th Ave Rd, Ocala, FL 34474",no,yes
+Huntsville,Huntsville Aquatics Center,Huntsville,AL,"2213 Drake Ave SW, Huntsville, AL 35805","Huntsville Aquatics Center, 2213 Drake Ave SW, Huntsville, AL 35805",no,yes
+TBD,Location TBD,,,,,no,no
