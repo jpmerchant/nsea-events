@@ -5,18 +5,18 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>NSEA Swim 2026-27 Events and Dates</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Oswald:wght@500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Oswald:wght@500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
-:root{--teal:#008675;--teal-d:#006A5C;--coral:#ee492f;--coral-l:#FCE7E3;--gray:#676d70;--ink:#1d2528;--line:#d9dfe1;--bg:#fff;--soft:#f3f7f7;--chip:#fff}
-@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--ink:#e8eeef;--line:#33403f;--bg:#121a1b;--soft:#1a2425;--chip:#121a1b;--gray:#9aa6a8;--coral-l:#3a2220}}
+:root{--teal:#008675;--teal-d:#006A5C;--coral:#ee492f;--coral-l:#FCE7E3;--gray:#676d70;--gray-l:#9BA0A3;--ink:#1B2325;--line:#E4E7E8;--bg:#fff;--soft:#FAFBFB;--chip:#fff;--mono:'Space Mono',ui-monospace,Menlo,monospace}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 Inter,system-ui,sans-serif}
 .wrap{max-width:1200px;margin:0 auto;padding:16px}
-h2{font:600 28px/1.15 Oswald,Inter,sans-serif;margin:4px 0 6px;letter-spacing:.2px}
-.note{color:var(--gray);margin:0 0 16px;font-size:14px}
-.panel{background:var(--soft);border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:14px}
+h2{font:600 30px/1.15 Oswald,Inter,sans-serif;margin:4px 0 10px;text-transform:uppercase;letter-spacing:.02em;color:var(--ink)}
+.note{color:var(--ink);margin:0 0 16px;font-size:14px;background:var(--coral-l);border-left:4px solid var(--coral);padding:10px 12px;border-radius:0 8px 8px 0}
+.panel .note{background:none;border:0;padding:0;color:var(--gray)}
+.panel{background:var(--soft);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:14px}
 .row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
-.lbl{font:600 12px Inter;text-transform:uppercase;letter-spacing:.06em;color:var(--gray);min-width:72px}
+.lbl{font:700 11px var(--mono);text-transform:uppercase;letter-spacing:.08em;color:var(--gray);min-width:72px}
 .fgrid{display:grid;gap:10px}
 input[type=search],select{font:inherit;padding:9px 11px;border:1px solid var(--line);border-radius:8px;background:var(--chip);color:var(--ink);min-width:0}
 input[type=search]{flex:1 1 220px}
@@ -26,30 +26,28 @@ input[type=search]{flex:1 1 220px}
 .btn{font:600 14px Inter;border:1px solid var(--teal);color:var(--teal-d);background:var(--chip);padding:7px 12px;border-radius:8px;cursor:pointer;text-decoration:none;display:inline-block}
 .btn.primary{background:var(--teal);color:#fff}
 .btn:hover{filter:brightness(.95)}
-@media (prefers-color-scheme:dark){:root:not([data-theme=light]) .btn{color:#7fe0d2}}
 label.tog{display:inline-flex;gap:6px;align-items:center;font-size:14px}
 details summary{cursor:pointer;font-weight:600;font-size:14px}
-.count{font-weight:600}
-.month{font:600 20px Oswald,Inter,sans-serif;margin:22px 0 8px;padding-bottom:4px;border-bottom:2px solid var(--teal);color:var(--teal-d)}
-@media (prefers-color-scheme:dark){:root:not([data-theme=light]) .month{color:#7fe0d2}}
+.count{font:700 12px var(--mono);color:var(--teal-d);letter-spacing:.04em}
+.month{font:600 22px Oswald,Inter,sans-serif;text-transform:uppercase;letter-spacing:.03em;margin:26px 0 8px;padding-bottom:4px;border-bottom:3px solid var(--teal);color:var(--teal-d)}
 .ev{display:grid;grid-template-columns:78px 1fr;gap:14px;padding:12px 0;border-bottom:1px solid var(--line)}
-.date{text-align:center;border:1px solid var(--line);border-radius:8px;padding:6px 4px;align-self:start;background:var(--soft)}
-.date b{display:block;font:600 22px/1.1 Oswald,sans-serif}
-.date span{font-size:12px;color:var(--gray);text-transform:uppercase;letter-spacing:.05em}
+.date{text-align:center;border:1px solid var(--line);border-top:3px solid var(--teal);border-radius:8px;padding:6px 4px;align-self:start;background:var(--soft)}
+.date b{display:block;font:600 22px/1.1 Oswald,sans-serif;color:var(--teal-d)}
+.date span{font:700 11px var(--mono);color:var(--gray);text-transform:uppercase;letter-spacing:.05em}
 .date.tbd b{font-size:15px}
-.ttl{font:600 18px/1.25 Inter;margin:0 0 4px}
+.date b{white-space:nowrap}
+@media (max-width:520px){.date b{font-size:18px}}
+.ttl{font:600 19px/1.25 Oswald,Inter,sans-serif;letter-spacing:.01em;margin:0 0 4px}
 .badges{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0}
-.b{font:600 12px Inter;padding:2px 8px;border-radius:999px;border:1px solid var(--line)}
+.b{font:700 11px var(--mono);letter-spacing:.03em;padding:3px 9px;border-radius:999px;border:1px solid var(--line);background:var(--chip)}
 .b.type{background:var(--teal);border-color:var(--teal);color:#fff}
 .b.type.deadline{background:var(--coral);border-color:var(--coral)}
 .b.type.schedule{background:var(--gray);border-color:var(--gray)}
 .b.type.team-event{background:var(--teal-d);border-color:var(--teal-d)}
 .b.tent{background:var(--coral-l);border-color:var(--coral);color:#a32a16}
-@media (prefers-color-scheme:dark){:root:not([data-theme=light]) .b.tent{color:#ff9d8c}}
 .meta{font-size:14px;color:var(--gray)}
 .meta a{color:var(--teal-d);font-weight:600}
-@media (prefers-color-scheme:dark){:root:not([data-theme=light]) .meta a{color:#7fe0d2}}
-.tags{font-size:12px;color:var(--gray);margin-top:4px}
+.tags{font:400 12px var(--mono);color:var(--gray-l);margin-top:4px}
 .acts{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
 .rev{background:#fff7d6;color:#5a4800;border:1px solid #e3c94b;border-radius:6px;padding:4px 8px;font-size:13px;margin-top:6px}
 .empty{padding:30px;text-align:center;color:var(--gray)}
