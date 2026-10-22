@@ -103,6 +103,14 @@ for(const f of feeds){const body=ics(CAL_NAME+' - '+f.label,f.evs.concat((f.sign
 
 const payload={built:new Date().toISOString(),standardsToolUrl:settings.standards_tool_url||'',groups:GROUPS,typeLabels:TYPE_LABEL,feeds,events};
 fs.writeFileSync('site/events.json',JSON.stringify(payload,null,1));
+const widgetItems=[];
+for(const e of events){
+  if(e.type==='deadline'&&e.precision==='day')widgetItems.push({title:e.title,date:e.start,link:e.signupLink||''});
+  if(e.signupDeadline)widgetItems.push({title:'Sign up: '+e.title,date:e.signupDeadline,link:e.signupLink,sub:e.start?'Event starts '+['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][+e.start.slice(5,7)-1]+' '+(+e.start.slice(8))+(e.start.slice(0,4)!==e.signupDeadline.slice(0,4)?', '+e.start.slice(0,4):''):''});
+}
+const wtpl=fs.readFileSync('site-src/widget.html','utf8');
+fs.mkdirSync('site/widget',{recursive:true});
+fs.writeFileSync('site/widget/index.html',wtpl.replace('/*WIDGET_DATA_HERE*/null',()=>JSON.stringify(widgetItems)));
 const tpl=fs.readFileSync('site-src/template.html','utf8');
 fs.writeFileSync('site/index.html',tpl.replace('/*EVENTS_PAYLOAD_HERE*/null',()=>JSON.stringify(payload)));
 fs.mkdirSync('site/admin',{recursive:true});fs.copyFileSync('site-src/admin.html','site/admin/index.html');

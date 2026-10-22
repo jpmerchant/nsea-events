@@ -22,6 +22,13 @@ Each event can have any combination of: a sign-up deadline (+ link), a selection
 - Standards live in `data/standards.csv`. Use the same names as the standards explorer. Set the explorer's page address on the Standards tab (`data/settings.json`); events then link to it as `?std=Name1|Name2`. The explorer needs a small update to read `std` and preselect those standards.
 - The public page has a "Requires" filter for these three.
 
+## Home page deadlines widget
+`/widget/` shows the next 5 upcoming deadlines (sign-up deadlines and deadline-type events) with days left and Sign up buttons. It updates itself from the same data. Embed it in a BUILD Custom HTML block:
+
+    <iframe src="https://events.nseaswimteam.com/widget/" title="Upcoming deadlines" style="width:100%;height:420px;border:0" loading="lazy"></iframe>
+
+Options on the URL: `?max=3` (1-15 rows), `?days=60` (only deadlines within 60 days). Links to the full calendar go to the site root of the events page.
+
 ## Editing notes
 - Undated events: choose "No, month only". They show as "Date TBD" and stay out of the calendar feeds until a date is set.
 - Never change an event's ID after publishing. It is the calendar UID, so a change creates duplicates for subscribers.
