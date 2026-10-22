@@ -18,10 +18,30 @@ h2{font:600 30px/1.15 Oswald,Inter,sans-serif;margin:4px 0 10px;text-transform:u
 .row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 .lbl{font:700 11px var(--mono);text-transform:uppercase;letter-spacing:.08em;color:var(--gray);min-width:72px}
 .fgrid{display:grid;gap:10px}
+input[type=search]{width:100%}
 input[type=search],select{font:inherit;padding:9px 11px;border:1px solid var(--line);border-radius:8px;background:var(--chip);color:var(--ink);min-width:0}
 input[type=search]{flex:1 1 220px}
-.chip{font:500 14px Inter;border:1px solid var(--line);background:var(--chip);color:var(--ink);padding:6px 11px;border-radius:999px;cursor:pointer}
-.chip[aria-pressed=true]{background:var(--teal);border-color:var(--teal);color:#fff}
+.dds{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.dd{position:relative}
+.dd>summary,#month{list-style:none;font:500 14px Inter;border:1px solid var(--line);background:var(--chip);color:var(--ink);padding:9px 12px;border-radius:8px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:6px;height:100%;width:100%}
+#month{appearance:auto;display:block}
+.dd>summary::-webkit-details-marker{display:none}
+.dd>summary::after{content:"";border:solid var(--gray);border-width:0 2px 2px 0;padding:3px;transform:rotate(45deg);margin:-3px 2px 0 0;flex:none}
+.dd[open]>summary{border-color:var(--teal)}
+.dd>summary.on{background:var(--teal);border-color:var(--teal);color:#fff}
+.dd>summary.on::after{border-color:#fff}
+.dd>summary:focus-visible{outline:3px solid var(--coral);outline-offset:2px}
+.menu{position:absolute;z-index:20;top:calc(100% + 4px);left:0;min-width:100%;width:max-content;max-width:min(320px,90vw);max-height:340px;overflow:auto;background:var(--chip);border:1px solid var(--line);border-radius:10px;box-shadow:0 8px 24px rgba(27,35,37,.16);padding:6px}
+.opt{display:flex;gap:9px;align-items:center;padding:8px 8px;border-radius:6px;font-size:14px;cursor:pointer}
+.opt:hover{background:var(--soft)}
+.opt input{width:18px;height:18px;accent-color:var(--teal);flex:none}
+.menu .done{width:100%;margin-top:6px;display:none}
+.menu hr{border:0;border-top:1px solid var(--line);margin:4px 0}
+.chip{font:500 13px Inter;border:1px solid var(--teal);background:var(--chip);color:var(--teal-d);padding:4px 6px 4px 11px;border-radius:999px;cursor:pointer}
+.chip::after{content:" \00d7";font-weight:700}
+@media (max-width:760px){.dds{grid-template-columns:1fr 1fr}.dd{position:static}
+ .menu{position:fixed;left:10px;right:10px;bottom:10px;top:auto;width:auto;max-width:none;max-height:65vh;box-shadow:0 -4px 30px rgba(27,35,37,.35)}
+ .menu .done{display:block}.opt{padding:12px 8px;font-size:16px}}
 .chip:focus-visible,.btn:focus-visible,summary:focus-visible{outline:3px solid var(--coral);outline-offset:2px}
 .btn{font:600 14px Inter;border:1px solid var(--teal);color:var(--teal-d);background:var(--chip);padding:7px 12px;border-radius:8px;cursor:pointer;text-decoration:none;display:inline-block}
 .btn.primary{background:var(--teal);color:#fff}
@@ -57,16 +77,19 @@ details summary{cursor:pointer;font-weight:600;font-size:14px}
 </head>
 <body>
 <div class="wrap">
-<h2>2026-27 Events &amp; Dates</h2>
 <p class="note">All dates are tentative and subject to change as the season gets closer. Filter below, add single events to Google Calendar, or subscribe to a feed that updates automatically.</p>
 
 <div class="panel fgrid" id="filters">
-  <div class="row"><input type="search" id="q" placeholder="Search events, venues, tags" aria-label="Search"><select id="month" aria-label="Month"></select></div>
-  <div class="row"><span class="lbl">Type</span><span class="row" id="f-type"></span></div>
-  <div class="row"><span class="lbl">Group</span><span class="row" id="f-group"></span></div>
-  <div class="row"><span class="lbl">Location</span><span class="row" id="f-loc"></span></div>
-  <details><summary>Tags</summary><div class="row" id="f-tag" style="margin-top:8px"></div></details>
-  <div class="row"><label class="tog"><input type="checkbox" id="past"> Show past events</label><label class="tog"><input type="checkbox" id="tbd" checked> Show events with dates still TBD</label><button class="btn" id="clear" type="button">Clear filters</button><span class="count" id="count" aria-live="polite"></span></div>
+  <input type="search" id="q" placeholder="Search events, venues, tags" aria-label="Search">
+  <div class="dds">
+    <details class="dd" data-k="type"><summary id="s-type">Type</summary><div class="menu" id="f-type"></div></details>
+    <details class="dd" data-k="group"><summary id="s-group">Group</summary><div class="menu" id="f-group"></div></details>
+    <details class="dd" data-k="loc"><summary id="s-loc">Where</summary><div class="menu" id="f-loc"></div></details>
+    <details class="dd" data-k="tag"><summary id="s-tag">Tags</summary><div class="menu" id="f-tag"></div></details>
+    <select id="month" aria-label="Month"></select>
+  </div>
+  <div class="row" id="active" aria-live="polite"></div>
+  <div class="row"><label class="tog"><input type="checkbox" id="past"> Show past events</label><label class="tog"><input type="checkbox" id="tbd" checked> Include dates still TBD</label><button class="btn" id="clear" type="button">Clear all</button><span class="count" id="count" aria-live="polite"></span></div>
 </div>
 
 <div class="panel sub">
@@ -93,16 +116,26 @@ const S={q:'',month:'',type:new Set(),group:new Set(),loc:new Set(),tag:new Set(
 
 function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function mlabel(m){const [y,mo]=m.split('-');return MONFULL[+mo-1]+' '+y}
-function chips(el,items,set,key){
-  el.innerHTML=items.map(([v,l])=>`<button type="button" class="chip" data-k="${key}" data-v="${esc(v)}" aria-pressed="false">${esc(l)}</button>`).join('');
-}
+const LAB={type:{},group:{},loc:{},tag:{}};
+function menu(el,items,key){items.forEach(([v,l])=>LAB[key][v]=l);
+  el.innerHTML=items.map(([v,l])=>v==='-'?'<hr>':`<label class="opt"><input type="checkbox" data-k="${key}" data-v="${esc(v)}"> ${esc(l)}</label>`).join('')+'<button type="button" class="btn done">Done</button>'}
 const types=Object.entries(DATA.typeLabels);
-chips($('#f-type'),types,S.type,'type');
-chips($('#f-group'),DATA.groups.map(g=>[g,g]),S.group,'group');
+menu($('#f-type'),types,'type');
+menu($('#f-group'),DATA.groups.map(g=>[g,g]),'group');
 const venues=[...new Map(E.filter(e=>e.venue).map(e=>[e.venue,e])).values()].sort((a,b)=>(b.home-a.home)||a.venueName.localeCompare(b.venueName));
-chips($('#f-loc'),[['__home','Home pool'],['__away','Away / travel'],...venues.filter(e=>!e.home&&e.venue!=='TBD').map(e=>[e.venue,e.venue+(e.venueCity&&e.venueCity.split(',')[0]!==e.venue?' - '+e.venueCity:'')])],S.loc,'loc');
+menu($('#f-loc'),[['__home','Home pool'],['__away','Away / travel'],['-',''],...venues.filter(e=>!e.home&&e.venue!=='TBD').map(e=>[e.venue,e.venue+(e.venueCity&&e.venueCity.split(',')[0]!==e.venue?' - '+e.venueCity:'')])],'loc');
 const tagCount={};E.forEach(e=>e.tags.forEach(t=>tagCount[t]=(tagCount[t]||0)+1));
-chips($('#f-tag'),Object.keys(tagCount).sort().map(t=>[t,t+' ('+tagCount[t]+')']),S.tag,'tag');
+menu($('#f-tag'),Object.keys(tagCount).sort().map(t=>[t,t+' ('+tagCount[t]+')']),'tag');
+const SUM={type:'Type',group:'Group',loc:'Where',tag:'Tags'};
+function syncUI(){
+  document.querySelectorAll('.opt input').forEach(i=>i.checked=S[i.dataset.k].has(i.dataset.v));
+  let act='';
+  for(const k of ['type','group','loc','tag']){const n=S[k].size,s=$('#s-'+k);
+    s.textContent=SUM[k]+(n?' ('+n+')':'');s.classList.toggle('on',n>0);
+    S[k].forEach(v=>act+=`<button type="button" class="chip" data-rm="${k}" data-v="${esc(v)}" aria-label="Remove filter ${esc(LAB[k][v]||v)}">${esc((LAB[k][v]||v).replace(/ \(\d+\)$/,''))}</button>`)}
+  if(S.month)act+=`<button type="button" class="chip" data-rm="month" aria-label="Remove month filter">${mlabel(S.month)}</button>`;
+  $('#active').innerHTML=act;$('#active').style.display=act?'flex':'none';
+}
 const months=[...new Set(E.map(e=>e.month).filter(Boolean))].sort();
 $('#month').innerHTML='<option value="">All months</option>'+months.map(m=>`<option value="${m}">${mlabel(m)}</option>`).join('');
 $('#feed').innerHTML=DATA.feeds.map(f=>`<option value="${f.file}">${esc(f.label)} (${f.n})</option>`).join('');
@@ -148,7 +181,7 @@ function render(){
   let out='',cur='';
   for(const e of f){if(e.month!==cur){cur=e.month;out+=`<h3 class="month">${mlabel(cur)}</h3>`}out+=card(e)}
   $('#list').innerHTML=out;
-  document.querySelectorAll('.chip').forEach(b=>b.setAttribute('aria-pressed',S[b.dataset.k].has(b.dataset.v)));
+  syncUI();
   saveHash();
 }
 function saveHash(){
@@ -165,10 +198,17 @@ function loadHash(){
   S.past=p.get('past')==='1';S.tbd=p.get('tbd')!=='0';
   $('#q').value=S.q;$('#month').value=S.month;$('#past').checked=S.past;$('#tbd').checked=S.tbd;
 }
-document.addEventListener('click',ev=>{const b=ev.target.closest('.chip');if(!b)return;
-  const s=S[b.dataset.k],v=b.dataset.v;
-  if(b.dataset.k==='loc'&&(v==='__home'||v==='__away')){s.delete(v==='__home'?'__away':'__home')}
-  s.has(v)?s.delete(v):s.add(v);render()});
+document.addEventListener('change',ev=>{const i=ev.target.closest('.opt input');if(!i)return;
+  const s=S[i.dataset.k],v=i.dataset.v;
+  if(i.dataset.k==='loc'&&(v==='__home'||v==='__away'))s.delete(v==='__home'?'__away':'__home');
+  i.checked?s.add(v):s.delete(v);render()});
+document.addEventListener('click',ev=>{
+  const rm=ev.target.closest('[data-rm]');
+  if(rm){if(rm.dataset.rm==='month'){S.month='';$('#month').value=''}else S[rm.dataset.rm].delete(rm.dataset.v);render();return}
+  if(ev.target.closest('.menu .done')){ev.target.closest('details').open=false;return}
+  const d=ev.target.closest('details.dd');
+  document.querySelectorAll('details.dd[open]').forEach(x=>{if(x!==d)x.open=false})});
+document.addEventListener('keydown',ev=>{if(ev.key==='Escape')document.querySelectorAll('details.dd[open]').forEach(x=>{x.open=false;x.querySelector('summary').focus()})});
 $('#q').addEventListener('input',e=>{S.q=e.target.value.trim();render()});
 $('#month').addEventListener('change',e=>{S.month=e.target.value;render()});
 $('#past').addEventListener('change',e=>{S.past=e.target.checked;render()});
