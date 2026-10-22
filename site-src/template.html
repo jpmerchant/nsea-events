@@ -21,7 +21,7 @@ h2{font:600 30px/1.15 Oswald,Inter,sans-serif;margin:4px 0 10px;text-transform:u
 input[type=search]{width:100%}
 input[type=search],select{font:inherit;padding:9px 11px;border:1px solid var(--line);border-radius:8px;background:var(--chip);color:var(--ink);min-width:0}
 input[type=search]{flex:1 1 220px}
-.dds{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.dds{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}
 .dd{position:relative}
 .dd>summary,#month{list-style:none;font:500 14px Inter;border:1px solid var(--line);background:var(--chip);color:var(--ink);padding:9px 12px;border-radius:8px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:6px;height:100%;width:100%}
 #month{appearance:auto;display:block}
@@ -67,6 +67,10 @@ details summary{cursor:pointer;font-weight:600;font-size:14px}
 .b.tent{background:var(--coral-l);border-color:var(--coral);color:#a32a16}
 .meta{font-size:14px;color:var(--gray)}
 .meta a{color:var(--teal-d);font-weight:600}
+.reqs{margin-top:8px;display:grid;gap:6px;border-left:3px solid var(--teal);padding-left:10px}
+.req{font-size:14px}.req a{color:var(--teal-d);font-weight:600}
+.rk{font:700 11px var(--mono);text-transform:uppercase;letter-spacing:.04em;color:var(--gray);margin-right:6px}
+.req .b{margin-right:4px;white-space:nowrap}.req .soon{background:var(--coral-l);border-color:var(--coral);color:#a32a16}.req .done{color:var(--gray)}
 .tags{font:400 12px var(--mono);color:var(--gray-l);margin-top:4px}
 .acts{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
 .rev{background:#fff7d6;color:#5a4800;border:1px solid #e3c94b;border-radius:6px;padding:4px 8px;font-size:13px;margin-top:6px}
@@ -85,6 +89,7 @@ details summary{cursor:pointer;font-weight:600;font-size:14px}
     <details class="dd" data-k="type"><summary id="s-type">Type</summary><div class="menu" id="f-type"></div></details>
     <details class="dd" data-k="group"><summary id="s-group">Group</summary><div class="menu" id="f-group"></div></details>
     <details class="dd" data-k="loc"><summary id="s-loc">Where</summary><div class="menu" id="f-loc"></div></details>
+    <details class="dd" data-k="req"><summary id="s-req">Requires</summary><div class="menu" id="f-req"></div></details>
     <details class="dd" data-k="tag"><summary id="s-tag">Tags</summary><div class="menu" id="f-tag"></div></details>
     <select id="month" aria-label="Month"></select>
   </div>
@@ -112,11 +117,11 @@ const MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','De
 const MONFULL=['January','February','March','April','May','June','July','August','September','October','November','December'];
 const todayStr=(()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')})();
 const E=DATA.events;
-const S={q:'',month:'',type:new Set(),group:new Set(),loc:new Set(),tag:new Set(),past:false,tbd:true};
+const S={q:'',month:'',type:new Set(),group:new Set(),loc:new Set(),tag:new Set(),req:new Set(),past:false,tbd:true};
 
 function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function mlabel(m){const [y,mo]=m.split('-');return MONFULL[+mo-1]+' '+y}
-const LAB={type:{},group:{},loc:{},tag:{}};
+const LAB={type:{},group:{},loc:{},tag:{},req:{}};
 function menu(el,items,key){items.forEach(([v,l])=>LAB[key][v]=l);
   el.innerHTML=items.map(([v,l])=>v==='-'?'<hr>':`<label class="opt"><input type="checkbox" data-k="${key}" data-v="${esc(v)}"> ${esc(l)}</label>`).join('')+'<button type="button" class="btn done">Done</button>'}
 const types=Object.entries(DATA.typeLabels);
@@ -125,12 +130,13 @@ menu($('#f-group'),DATA.groups.map(g=>[g,g]),'group');
 const venues=[...new Map(E.filter(e=>e.venue).map(e=>[e.venue,e])).values()].sort((a,b)=>(b.home-a.home)||a.venueName.localeCompare(b.venueName));
 menu($('#f-loc'),[['__home','Home pool'],['__away','Away / travel'],['-',''],...venues.filter(e=>!e.home&&e.venue!=='TBD').map(e=>[e.venue,e.venue+(e.venueCity&&e.venueCity.split(',')[0]!==e.venue?' - '+e.venueCity:'')])],'loc');
 const tagCount={};E.forEach(e=>e.tags.forEach(t=>tagCount[t]=(tagCount[t]||0)+1));
+menu($('#f-req'),[['signup','Sign-up deadline'],['selection','Selection process'],['standards','Qualifying standards']],'req');
 menu($('#f-tag'),Object.keys(tagCount).sort().map(t=>[t,t+' ('+tagCount[t]+')']),'tag');
-const SUM={type:'Type',group:'Group',loc:'Where',tag:'Tags'};
+const SUM={type:'Type',group:'Group',loc:'Where',req:'Requires',tag:'Tags'};
 function syncUI(){
   document.querySelectorAll('.opt input').forEach(i=>i.checked=S[i.dataset.k].has(i.dataset.v));
   let act='';
-  for(const k of ['type','group','loc','tag']){const n=S[k].size,s=$('#s-'+k);
+  for(const k of ['type','group','loc','req','tag']){const n=S[k].size,s=$('#s-'+k);
     s.textContent=SUM[k]+(n?' ('+n+')':'');s.classList.toggle('on',n>0);
     S[k].forEach(v=>act+=`<button type="button" class="chip" data-rm="${k}" data-v="${esc(v)}" aria-label="Remove filter ${esc(LAB[k][v]||v)}">${esc((LAB[k][v]||v).replace(/ \(\d+\)$/,''))}</button>`)}
   if(S.month)act+=`<button type="button" class="chip" data-rm="month" aria-label="Remove month filter">${mlabel(S.month)}</button>`;
@@ -156,10 +162,22 @@ function match(e){
   if(S.group.size&&!(e.groupsAll||e.groups.some(g=>S.group.has(g))))return false;
   if(S.loc.size){const ok=[...S.loc].some(v=>v==='__home'?e.home:v==='__away'?(!!e.venue&&!e.home&&e.venue!=='TBD'):e.venue===v);if(!ok)return false}
   if(S.tag.size&&![...S.tag].every(t=>e.tags.includes(t)))return false;
-  if(S.q){const h=(e.title+' '+e.venueName+' '+e.venueCity+' '+e.venue+' '+e.tags.join(' ')+' '+e.eligibility+' '+e.description+' '+e.groups.join(' ')).toLowerCase();
+  if(S.req.size&&![...S.req].every(r=>e.requires.includes(r)))return false;
+  if(S.q){const h=(e.title+' '+e.venueName+' '+e.venueCity+' '+e.venue+' '+e.tags.join(' ')+' '+e.eligibility+' '+e.description+' '+e.groups.join(' ')+' '+e.standards.map(s=>s.name).join(' ')).toLowerCase();
     if(!S.q.toLowerCase().split(/\s+/).every(w=>h.includes(w)))return false}
   return true;
 }
+const DOW=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+function fmtDay(s){const [y,m,d]=s.split('-').map(Number);return DOW[new Date(Date.UTC(y,m-1,d)).getUTCDay()]+' '+MON[m-1]+' '+d+', '+y}
+function daysUntil(s){const [y,m,d]=s.split('-').map(Number),[ty,tm,td]=todayStr.split('-').map(Number);return Math.round((Date.UTC(y,m-1,d)-Date.UTC(ty,tm-1,td))/864e5)}
+function reqs(e){
+  let h='';
+  if(e.signupDeadline){const n=daysUntil(e.signupDeadline);
+    const flag=n<0?'<span class="b">Closed</span>':n===0?'<span class="b soon">Due today</span>':n<=7?`<span class="b soon">${n} day${n>1?'s':''} left</span>`:'';
+    h+=`<div class="req"><span class="rk">Sign up by</span><b${n<0?' class="done"':''}>${esc(fmtDay(e.signupDeadline))}</b> ${flag} ${e.signupLink?`<a href="${esc(e.signupLink)}" target="_blank" rel="noopener">Sign up</a>`:'<span class="meta">(link coming)</span>'}${e.signupAddToGoogle&&n>=0?` &middot; <a href="${e.signupAddToGoogle}" target="_blank" rel="noopener">Add deadline to calendar</a>`:''}</div>`}
+  if(e.hasSelection)h+=`<div class="req"><span class="rk">Selection process</span>${e.selectionNotes?esc(e.selectionNotes)+' ':''}${e.selectionLink?`<a href="${esc(e.selectionLink)}" target="_blank" rel="noopener">How selection works</a>`:'<span class="meta">(details coming)</span>'}</div>`;
+  if(e.hasStandards)h+=`<div class="req"><span class="rk">Qualifying standards</span>${e.standards.map(s=>s.link?`<a class="b" href="${esc(s.link)}" target="_blank" rel="noopener">${esc(s.name)}</a>`:`<span class="b">${esc(s.name)}</span>`).join('')}${e.standards.length?'':'<span class="meta">see meet info</span> '}${e.toolUrl?`<a href="${esc(e.toolUrl)}" target="_blank" rel="noopener">Check my time</a>`:''}${e.standardsLink?`${e.toolUrl?' &middot; ':''}<a href="${esc(e.standardsLink)}" target="_blank" rel="noopener">Meet standards</a>`:''}</div>`;
+  return h?`<div class="reqs">${h}</div>`:''}
 function card(e){
   const d=fmtDate(e);
   const grp=e.groupsAll?'All groups':e.groups.join(' / ');
@@ -169,6 +187,7 @@ function card(e){
   <h3 class="ttl">${esc(e.title)}</h3>
   <div class="badges"><span class="b type ${e.type}">${esc(e.typeLabel)}</span>${e.status==='Tentative'?'<span class="b tent">Tentative</span>':''}${e.precision!=='day'?'<span class="b tent">Date TBD</span>':''}<span class="b">${esc(grp)}</span>${e.eligibility?`<span class="b">${esc(e.eligibility)}</span>`:''}</div>
   ${loc}${e.description?`<div class="meta">${esc(e.description)}</div>`:''}
+  ${reqs(e)}
   ${e.tags.length?`<div class="tags">${e.tags.map(t=>'#'+esc(t)).join(' ')}</div>`:''}
   <div class="acts">${e.addToGoogle?`<a class="btn" href="${e.addToGoogle}" target="_blank" rel="noopener">Add to Google Calendar</a>`:''}${e.link?`<a class="btn" href="${esc(e.link)}" target="_blank" rel="noopener">Details</a>`:''}</div>
   ${ADMIN&&e.needsReview?`<div class="rev"><b>Review:</b> ${esc(e.reviewNote)}</div>`:''}
@@ -187,14 +206,14 @@ function render(){
 function saveHash(){
   const p=new URLSearchParams();
   if(S.q)p.set('q',S.q);if(S.month)p.set('m',S.month);
-  for(const k of ['type','group','loc','tag'])if(S[k].size)p.set(k,[...S[k]].join(','));
+  for(const k of ['type','group','loc','req','tag'])if(S[k].size)p.set(k,[...S[k]].join(','));
   if(S.past)p.set('past','1');if(!S.tbd)p.set('tbd','0');
   try{history.replaceState(null,'',(p.toString()?'#'+p:location.pathname+location.search))}catch(e){}
 }
 function loadHash(){
   const p=new URLSearchParams(location.hash.slice(1));
   S.q=p.get('q')||'';S.month=p.get('m')||'';
-  for(const k of ['type','group','loc','tag'])S[k]=new Set((p.get(k)||'').split(',').filter(Boolean));
+  for(const k of ['type','group','loc','req','tag'])S[k]=new Set((p.get(k)||'').split(',').filter(Boolean));
   S.past=p.get('past')==='1';S.tbd=p.get('tbd')!=='0';
   $('#q').value=S.q;$('#month').value=S.month;$('#past').checked=S.past;$('#tbd').checked=S.tbd;
 }
@@ -213,7 +232,7 @@ $('#q').addEventListener('input',e=>{S.q=e.target.value.trim();render()});
 $('#month').addEventListener('change',e=>{S.month=e.target.value;render()});
 $('#past').addEventListener('change',e=>{S.past=e.target.checked;render()});
 $('#tbd').addEventListener('change',e=>{S.tbd=e.target.checked;render()});
-$('#clear').addEventListener('click',()=>{S.q='';S.month='';S.past=false;S.tbd=true;for(const k of ['type','group','loc','tag'])S[k].clear();$('#q').value='';$('#month').value='';$('#past').checked=false;$('#tbd').checked=true;render()});
+$('#clear').addEventListener('click',()=>{S.q='';S.month='';S.past=false;S.tbd=true;for(const k of ['type','group','loc','req','tag'])S[k].clear();$('#q').value='';$('#month').value='';$('#past').checked=false;$('#tbd').checked=true;render()});
 
 function feedUrl(){return new URL('feeds/'+$('#feed').value,location.href).href}
 function updSub(){const u=feedUrl();$('#gsub').href='https://calendar.google.com/calendar/r?cid='+encodeURIComponent(u.replace(/^https?:/,'webcal:'))}

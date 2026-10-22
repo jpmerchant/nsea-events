@@ -16,6 +16,12 @@ Source of truth: `data/events.csv` + `data/venues.csv`, edited through the admin
 5. Edit events and venues, open "Review & publish", click Publish. The site rebuilds in a minute or two.
 Each edit is a git commit, so anything can be undone from the repo history.
 
+## Requirements on events
+Each event can have any combination of: a sign-up deadline (+ link), a selection process (+ link and short summary), and qualifying standards (pick from the Standards tab, + optional link to the meet's qualifying times).
+- Sign-up deadlines also appear in the calendar feeds as their own all-day "Sign-up deadline" entries (and in deadlines.ics).
+- Standards live in `data/standards.csv`. Use the same names as the standards explorer. Set the explorer's page address on the Standards tab (`data/settings.json`); events then link to it as `?std=Name1|Name2`. The explorer needs a small update to read `std` and preselect those standards.
+- The public page has a "Requires" filter for these three.
+
 ## Editing notes
 - Undated events: choose "No, month only". They show as "Date TBD" and stay out of the calendar feeds until a date is set.
 - Never change an event's ID after publishing. It is the calendar UID, so a change creates duplicates for subscribers.
