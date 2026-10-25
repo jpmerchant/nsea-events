@@ -39,3 +39,8 @@ Options on the URL: `?max=3` (1-15 rows), `?days=60` (only deadlines within 60 d
 - Add `?admin` to the public page URL to see the "needs review" notes.
 - Venue map links use the venue's "map search text".
 - The CSV columns are documented by the admin form; `tools/seed.py` is the one-off script that created the first data and is not needed day to day.
+
+## Needs attention and recent changes
+
+- **Admin > Needs attention** lists data problems as you edit: tentative meets within 30 days, past dates still tentative, meets with no venue or sign-up deadline, deadlines with no link, selection/standards boxes checked but empty, standards with no link, and anything flagged for review. Click a row to fix it.
+- **Public page** shows a "New" or "Updated" badge (hover for what changed) on events edited in the last 7 days, plus a "Recent changes" list. It is computed at build time from git history of `data/events.csv`; commits touching more than 12 events at once are treated as bulk imports and ignored. The workflow checks out full history (`fetch-depth: 0`) for this.

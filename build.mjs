@@ -26,6 +26,29 @@ const stdByKey=Object.fromEntries(standardsList.map(s=>[s.key,s]));
 const toolUrl=(keys)=>{const u=(settings.standards_tool_url||'').trim();if(!u||!keys.length)return u;
   return u+(u.includes('?')?'&':'?')+'std='+encodeURIComponent(keys.map(k=>stdByKey[k].name).join('|'))};
 const isUrl=s=>!s||/^https?:\/\//.test(s);
+// ---- change visibility: diff data/events.csv across recent commits (needs full git history; skipped quietly if unavailable)
+const RECENT_DAYS=7;
+const FIELD_LABEL={title:'name',start:'dates',end:'dates',precision:'dates',month_hint:'dates',type:'type',groups:'groups',eligibility:'eligibility',venue:'venue',status:'status',signup_deadline:'sign-up deadline',signup_link:'sign-up link',has_selection:'selection process',selection_link:'selection process',selection_notes:'selection process',has_standards:'standards',standards:'standards',standards_link:'standards',volunteer_link:'volunteer link',volunteer_deadline:'volunteer deadline',description:'details',link:'details link'};
+const changeInfo={};
+let recentChanges=[];
+try{
+  const {execFileSync}=await import('node:child_process');
+  const git=(...a)=>execFileSync('git',a,{encoding:'utf8',stdio:['ignore','pipe','ignore'],maxBuffer:64e6});
+  const since=new Date(Date.now()-RECENT_DAYS*864e5).toISOString();
+  const commits=git('log','--reverse','--since='+since,'--format=%H %cI','--','data/events.csv').trim().split('\n').filter(Boolean).map(l=>l.split(' '));
+  for(const [h,when] of commits){
+    let before=[];try{before=parseCSV(git('show',h+'^:data/events.csv'))}catch{continue}
+    const after=parseCSV(git('show',h+':data/events.csv'));
+    const prev=Object.fromEntries(before.map(r=>[r.id,r]));
+    const touched=after.filter(r=>!prev[r.id]||Object.keys(FIELD_LABEL).some(k=>(prev[r.id][k]||'')!==(r[k]||''))).length;
+    if(touched>12)continue; // bulk import/re-seed, not an edit worth flagging
+    for(const r of after){const o=prev[r.id];
+      if(!o){changeInfo[r.id]={kind:'new',when,what:[]};continue}
+      const what=[...new Set(Object.keys(FIELD_LABEL).filter(k=>(o[k]||'')!==(r[k]||'')).map(k=>FIELD_LABEL[k]))];
+      if(what.length){const old=changeInfo[r.id];changeInfo[r.id]={kind:old&&old.kind==='new'?'new':'updated',when,what:[...new Set([...(old?old.what:[]),...what])]}}}
+    for(const o of before)if(!after.some(r=>r.id===o.id))recentChanges.push({id:o.id,title:o.title,kind:'removed',when,what:[]})}
+}catch(e){console.warn('change history unavailable:',e.message)}
+
 const warnings=[];
 
 const addDays=(d,n)=>{const x=new Date(d+'T00:00:00Z');x.setUTCDate(x.getUTCDate()+n);return x.toISOString().slice(0,10)};
@@ -116,7 +139,9 @@ for(const g of GROUPS)feeds.push({file:g.toLowerCase()+'.ics',label:g+' (group e
 for(const f of feeds){const body=ics(CAL_NAME+' - '+f.label,f.evs.concat((f.signupOnly||[]).map(e=>({...e,precision:'skip'}))));
   fs.writeFileSync('site/feeds/'+f.file,body);f.n=(body.match(/BEGIN:VEVENT/g)||[]).length;delete f.evs;delete f.signupOnly}
 
-const payload={built:new Date().toISOString(),standardsToolUrl:settings.standards_tool_url||'',groups:GROUPS,typeLabels:TYPE_LABEL,feeds,events};
+for(const e of events){const c=changeInfo[e.id];if(c){e.change=c.kind;e.changedOn=c.when.slice(0,10);e.changedWhat=c.what}}
+const recent=events.filter(e=>e.change).map(e=>({id:e.id,title:e.title,kind:e.change,on:e.changedOn,what:e.changedWhat,date:e.start||e.month})).concat(recentChanges.map(c=>({id:c.id,title:c.title,kind:'removed',on:c.when.slice(0,10),what:[],date:''}))).sort((a,b)=>b.on.localeCompare(a.on)||a.title.localeCompare(b.title));
+const payload={built:new Date().toISOString(),recent,standardsToolUrl:settings.standards_tool_url||'',groups:GROUPS,typeLabels:TYPE_LABEL,feeds,events};
 fs.writeFileSync('site/events.json',JSON.stringify(payload,null,1));
 const widgetItems=[];
 for(const e of events){

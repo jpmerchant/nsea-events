@@ -67,6 +67,7 @@ code{font-family:var(--mono);font-size:12px;background:#eef2f2;padding:1px 5px;b
 
 <div id="app" class="hide">
   <div class="tabs" role="tablist">
+    <button class="tab" role="tab" id="t-attn" aria-selected="false">Needs attention (<span id="n-at">0</span>)</button>
     <button class="tab" role="tab" id="t-events" aria-selected="true">Events (<span id="n-ev">0</span>)</button>
     <button class="tab" role="tab" id="t-venues" aria-selected="false">Venues (<span id="n-ve">0</span>)</button>
     <button class="tab" role="tab" id="t-types" aria-selected="false">Types (<span id="n-ty">0</span>)</button>
@@ -187,15 +188,39 @@ const settingsText=()=>JSON.stringify(S.settings,null,1)+'\n';
 function sortedEvents(){return [...S.events].sort((a,b)=>(a.start||a.month_hint+'-99').localeCompare(b.start||b.month_hint+'-99'))}
 const dirty=()=>toCSV(EH,sortedEvents())!==S.origE||toCSV(VH,S.venues)!==S.origV||toCSV(SH,S.standards)!==S.origS||settingsText()!==S.origT||(S.origY===''?toCSV(TH,S.types)!==toCSV(TH,DEFAULT_TYPES):toCSV(TH,S.types)!==S.origY);
 
+/* ---------- needs attention ---------- */
+function attention(){
+  const out=[],iso=d=>d.toISOString().slice(0,10),today=iso(new Date()),in30=iso(new Date(Date.now()+30*864e5));
+  S.events.forEach((e,i)=>{
+    const add=(msg,lvl)=>out.push({i,title:e.title,date:fmtD(e),msg,lvl:lvl||1});
+    const day=e.precision==='day',tent=e.status==='Tentative';
+    if(day&&e.end<today&&tent)add('Date has passed but still marked Tentative.');
+    if(day&&e.end>=today&&e.start<=in30&&tent)add('Starts within 30 days and still Tentative.',2);
+    if(!day&&e.month_hint&&e.month_hint<today.slice(0,7))add('Month has passed and the date was never set.',2);
+    if(e.type==='meet'&&!e.venue)add('Meet has no venue.');
+    if(e.type==='meet'&&day&&e.end>=today&&e.start<=in30&&!e.signup_deadline)add('Meet within 30 days has no sign-up deadline.');
+    if(e.signup_deadline&&!e.signup_link)add('Sign-up deadline has no sign-up link.');
+    if(e.volunteer_deadline&&!e.volunteer_link)add('Volunteer deadline has no volunteer link.');
+    if(e.has_selection==='yes'&&!e.selection_link&&!e.selection_notes)add('Selection process is checked but has no link or notes.');
+    if(e.has_standards==='yes'&&!list(e.standards).length)add('Qualifying standards is checked but none are chosen.');
+    if(e.needs_review)add('Flagged for review'+(e.review_note?': '+e.review_note:'.'));
+  });
+  S.standards.forEach(s=>{if(!s.link)out.push({std:s.key,title:s.name,date:'Standard',msg:'No official link.',lvl:0})});
+  return out.sort((a,b)=>b.lvl-a.lvl)}
+function attnView(){
+  const a=attention();
+  if(!a.length)return '<div class="panel"><b>All clear.</b> Nothing needs attention.</div>';
+  return `<p class="hint">Click a row to fix it. Counts update as you edit.</p><div class="scroll"><table><thead><tr><th>Item</th><th>Date</th><th>Issue</th></tr></thead><tbody>${a.map(x=>`<tr class="clk" tabindex="0" data-act="${x.std?'attn-std':'edit-event'}" data-i="${x.std!==undefined?esc(x.std):x.i}"><td><b>${esc(x.title)}</b></td><td>${esc(x.date)}</td><td>${x.lvl>=2?'<span class="b warn">soon</span> ':''}${esc(x.msg)}</td></tr>`).join('')}</tbody></table></div>`}
 /* ---------- views ---------- */
 function fmtD(e){if(e.precision!=='day')return 'TBD ('+e.month_hint+')';return e.start===e.end?e.start:e.start+' to '+e.end}
 function setTab(t){S.tab=t;S.edit=null;render()}
 function render(){
-  $('#n-ev').textContent=S.events.length;$('#n-ve').textContent=S.venues.length;$('#n-st').textContent=S.standards.length;$('#n-ty').textContent=S.types.length;$('#n-tg').textContent=tagCounts().length;
+  $('#n-ev').textContent=S.events.length;$('#n-at').textContent=attention().length;$('#n-ve').textContent=S.venues.length;$('#n-st').textContent=S.standards.length;$('#n-ty').textContent=S.types.length;$('#n-tg').textContent=tagCounts().length;
   $('#dirty').classList.toggle('hide',!dirty());
-  for(const t of ['events','venues','types','tags','standards','save'])$('#t-'+t).setAttribute('aria-selected',S.tab===t);
+  for(const t of ['attn','events','venues','types','tags','standards','save'])$('#t-'+t).setAttribute('aria-selected',S.tab===t);
   const v=$('#view');
-  if(S.tab==='events')v.innerHTML=S.edit?eventForm():eventList();
+  if(S.tab==='attn')v.innerHTML=attnView();
+  else if(S.tab==='events')v.innerHTML=S.edit?eventForm():eventList();
   else if(S.tab==='venues')v.innerHTML=S.edit?venueForm():venueList();
   else if(S.tab==='standards')v.innerHTML=S.edit?standardForm():standardList();
   else if(S.tab==='types')v.innerHTML=S.edit?typeForm():typeList();
@@ -363,7 +388,7 @@ document.addEventListener('change',ev=>{
 document.addEventListener('click',async ev=>{
   const b=ev.target.closest('[data-act]');if(!b)return;const a=b.dataset.act,i=+b.dataset.i;
   if(a==='new-event'){S.edit={e:blankEvent(),i:-1,isNew:true,errors:[]};render()}
-  else if(a==='edit-event'){S.edit={e:{...S.events[i]},i,isNew:false,errors:[]};render();window.scrollTo(0,0)}
+  else if(a==='edit-event'){S.tab='events';S.edit={e:{...S.events[i]},i,isNew:false,errors:[]};render();window.scrollTo(0,0)}
   else if(a==='dup-event'){const e={...S.edit.e,id:'',title:S.edit.e.title+' (copy)'};e.id=slug(e.title);S.edit={e,i:-1,isNew:true,errors:[]};render()}
   else if(a==='addtag'){const e=S.edit.e;const t=list(e.tags);if(!t.includes(b.dataset.t))t.push(b.dataset.t);e.tags=t.join(';');render()}
   else if(a==='done-event'){const {e,i,isNew}=S.edit;if(e.precision==='day')e.month_hint='';e.needs_review=e.needs_review?'yes':'';if(!e.needs_review)e.review_note='';
@@ -381,6 +406,7 @@ document.addEventListener('click',async ev=>{
     if(n){S.edit.errors=[n+' event(s) still use this venue. Change them first.'];render();return}
     if(confirm('Delete venue '+k+'?')){S.venues.splice(S.edit.i,1);S.edit=null;render()}}
   else if(a==='new-standard'){S.edit={e:blankStandard(),i:-1,isNew:true,errors:[]};render()}
+  else if(a==='attn-std'){const j=S.standards.findIndex(x=>x.key===b.dataset.i);S.tab='standards';S.edit={e:{...S.standards[j]},i:j,isNew:false,errors:[]};render();window.scrollTo(0,0)}
   else if(a==='edit-standard'){S.edit={e:{...S.standards[i]},i,isNew:false,errors:[]};render();window.scrollTo(0,0)}
   else if(a==='done-standard'){const {e,i,isNew}=S.edit;const er=validStandard(e,i);if(er.length){S.edit.errors=er;render();window.scrollTo(0,0);return}
     if(isNew)S.standards.push(e);else S.standards[i]=e;S.edit=null;render()}
@@ -414,7 +440,7 @@ document.addEventListener('click',async ev=>{
     }catch(err){b.disabled=false;msg.innerHTML='<div class="msg err" role="alert">'+esc(err.message)+(/422|409|fast-forward/i.test(err.message)?' Someone else may have changed the data. Disconnect, reconnect to reload, and re-apply your edit.':'')+'</div>'}}
 });
 document.addEventListener('keydown',ev=>{if(ev.key==='Enter'&&ev.target.matches('tr.clk'))ev.target.click()});
-for(const t of ['events','venues','types','tags','standards','save'])$('#t-'+t).addEventListener('click',()=>setTab(t));
+for(const t of ['attn','events','venues','types','tags','standards','save'])$('#t-'+t).addEventListener('click',()=>setTab(t));
 window.addEventListener('beforeunload',e=>{if(G.token&&dirty()){e.preventDefault();e.returnValue=''}});
 
 /* ---------- connect ---------- */

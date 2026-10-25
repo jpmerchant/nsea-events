@@ -50,7 +50,7 @@ label.tog{display:inline-flex;gap:6px;align-items:center;font-size:14px}
 details summary{cursor:pointer;font-weight:600;font-size:14px}
 .count{font:700 12px var(--mono);color:var(--teal-d);letter-spacing:.04em}
 .month{font:600 22px Oswald,Inter,sans-serif;text-transform:uppercase;letter-spacing:.03em;margin:26px 0 8px;padding-bottom:4px;border-bottom:3px solid var(--teal);color:var(--teal-d)}
-.ev{display:grid;grid-template-columns:78px 1fr;gap:14px;padding:12px 0;border-bottom:1px solid var(--line)}
+.ev{display:grid;grid-template-columns:78px minmax(0,1fr);gap:14px;padding:12px 0;border-bottom:1px solid var(--line)}
 .date{text-align:center;border:1px solid var(--line);border-top:3px solid var(--teal);border-radius:8px;padding:6px 4px;align-self:start;background:var(--soft)}
 .date b{display:block;font:600 22px/1.1 Oswald,sans-serif;color:var(--teal-d)}
 .date span{font:700 11px var(--mono);color:var(--gray);text-transform:uppercase;letter-spacing:.05em}
@@ -60,6 +60,8 @@ details summary{cursor:pointer;font-weight:600;font-size:14px}
 .ttl{font:600 19px/1.25 Oswald,Inter,sans-serif;letter-spacing:.01em;margin:0 0 4px}
 .badges{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0}
 .b{font:700 11px var(--mono);letter-spacing:.03em;padding:3px 9px;border-radius:999px;border:1px solid var(--line);background:var(--chip)}
+.recent{margin:0 0 12px;border:1px solid var(--line);border-radius:8px;background:#fff;padding:8px 14px;font-size:14px}.recent summary{cursor:pointer;font:600 14px Inter;color:var(--teal-d)}.recent ul{margin:8px 0 2px;padding-left:18px;line-height:1.7}
+.b.new{background:#E6F3F1;border-color:var(--teal);color:var(--teal-d)}
 .b.type{color:#fff;background:var(--teal);border-color:var(--teal)}
 .b.type.c-teal-dark{background:var(--teal-d);border-color:var(--teal-d)}
 .b.type.c-coral{background:var(--coral);border-color:var(--coral)}
@@ -70,13 +72,13 @@ details summary{cursor:pointer;font-weight:600;font-size:14px}
 .reqs{margin-top:8px;display:grid;gap:6px;border-left:3px solid var(--teal);padding-left:10px}
 .req{font-size:14px}.req a{color:var(--teal-d);font-weight:600}
 .rk{font:700 11px var(--mono);text-transform:uppercase;letter-spacing:.04em;color:var(--gray);margin-right:6px}
-.req .b{margin-right:4px;white-space:nowrap}.req .soon{background:var(--coral-l);border-color:var(--coral);color:#a32a16}.req .done{color:var(--gray)}
+.req .b{display:inline-block;margin:0 4px 4px 0;white-space:nowrap}.req .soon{background:var(--coral-l);border-color:var(--coral);color:#a32a16}.req .done{color:var(--gray)}
 .tags{font:400 12px var(--mono);color:var(--gray-l);margin-top:4px}
 .acts{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
 .rev{background:#fff7d6;color:#5a4800;border:1px solid #e3c94b;border-radius:6px;padding:4px 8px;font-size:13px;margin-top:6px}
 .empty{padding:30px;text-align:center;color:var(--gray)}
 .sub select{flex:1 1 240px}
-@media (max-width:520px){.ev{grid-template-columns:62px 1fr;gap:10px}.lbl{min-width:100%}}
+@media (max-width:520px){.ev{grid-template-columns:62px minmax(0,1fr);gap:10px}.lbl{min-width:100%}}
 </style>
 </head>
 <body>
@@ -106,6 +108,7 @@ details summary{cursor:pointer;font-weight:600;font-size:14px}
   <p class="note" style="margin:8px 0 0">Subscribed calendars refresh on Google's schedule (usually within a day). Events without a confirmed date are not in the feeds until a date is set.</p>
 </div>
 
+<div id="recent"></div>
 <div id="list"></div>
 </div>
 
@@ -188,7 +191,7 @@ function card(e){
     :(e.venue==='TBD'?'<div class="meta">Location TBD</div>':'');
   return `<article class="ev"><div class="date${d.cls||''}"><b>${esc(d.a)}</b><span>${esc(d.b)}</span></div><div>
   <h3 class="ttl">${esc(e.title)}</h3>
-  <div class="badges"><span class="b type c-${e.typeColor||'teal'}">${esc(e.typeLabel)}</span>${e.status==='Tentative'?'<span class="b tent">Tentative</span>':''}${e.precision!=='day'?'<span class="b tent">Date TBD</span>':''}<span class="b">${esc(grp)}</span>${e.eligibility?`<span class="b">${esc(e.eligibility)}</span>`:''}</div>
+  <div class="badges"><span class="b type c-${e.typeColor||'teal'}">${esc(e.typeLabel)}</span>${e.change?`<span class="b new" title="${esc((e.change==='new'?'Added ':'Updated ')+e.changedOn+(e.changedWhat&&e.changedWhat.length?': '+e.changedWhat.join(', '):''))}">${e.change==='new'?'New':'Updated'}</span>`:''}${e.status==='Tentative'?'<span class="b tent">Tentative</span>':''}${e.precision!=='day'?'<span class="b tent">Date TBD</span>':''}<span class="b">${esc(grp)}</span>${e.eligibility?`<span class="b">${esc(e.eligibility)}</span>`:''}</div>
   ${loc}${e.description?`<div class="meta">${esc(e.description)}</div>`:''}
   ${reqs(e)}
   ${e.tags.length?`<div class="tags">${e.tags.map(t=>'#'+esc(t)).join(' ')}</div>`:''}
@@ -196,6 +199,11 @@ function card(e){
   ${ADMIN&&e.needsReview?`<div class="rev"><b>Review:</b> ${esc(e.reviewNote)}</div>`:''}
   </div></article>`;
 }
+function recentBlock(){
+  const r=(DATA.recent||[]);if(!r.length)return '';
+  const fd=d=>{const m=/^(\d{4})-(\d\d)-(\d\d)$/.exec(d||'');return m?new Date(+m[1],+m[2]-1,+m[3]).toLocaleDateString('en-US',{month:'short',day:'numeric'}):''};
+  return `<details class="recent"><summary>Recent changes (${r.length})</summary><ul>${r.slice(0,10).map(c=>`<li><b>${esc(c.title)}</b> &mdash; ${c.kind==='new'?'added':c.kind==='removed'?'removed':'updated'+(c.what.length?' ('+esc(c.what.join(', '))+')':'')} <span class="meta">${fd(c.on)}</span></li>`).join('')}${r.length>10?`<li class="meta">+ ${r.length-10} more</li>`:''}</ul></details>`}
+document.getElementById('recent').innerHTML=recentBlock();
 function render(){
   const f=E.filter(match);
   $('#count').textContent=f.length+' of '+E.length+' events';
