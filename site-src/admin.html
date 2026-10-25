@@ -89,7 +89,7 @@ const PROTECTED=['meet','deadline'];
 let TYPES={};
 const syncTypes=()=>{TYPES=Object.fromEntries(S.types.map(t=>[t.key,t.label]))};
 const STATUS=['Tentative','Confirmed'];
-const EH=["id","title","start","end","precision","month_hint","type","groups","eligibility","venue","status","tags","description","link","needs_review","review_note","signup_deadline","signup_link","has_selection","selection_link","selection_notes","has_standards","standards","standards_link"];
+const EH=["id","title","start","end","precision","month_hint","type","groups","eligibility","venue","status","tags","description","link","needs_review","review_note","signup_deadline","signup_link","has_selection","selection_link","selection_notes","has_standards","standards","standards_link","volunteer_link","volunteer_deadline"];
 const SH=["key","name","group","link","notes"];
 const VH=["key","name","city","state","address","map_query","home","verified"];
 const P={files:{events:'data/events.csv',venues:'data/venues.csv',standards:'data/standards.csv',settings:'data/settings.json',types:'data/types.csv'}};
@@ -156,8 +156,10 @@ function validEvent(e,idx){
   const g=list(e.groups);if(!g.length)er.push('Pick at least one group (or All).');
   if(g.some(x=>x!=='All'&&!GROUPS.includes(x)))er.push('Unknown group.');
   if(e.venue&&!S.venues.some(v=>v.key===e.venue))er.push('Venue "'+e.venue+'" is not in the Venues tab.');
-  for(const [f,n] of [['link','Link'],['signup_link','Sign-up link'],['selection_link','Selection link'],['standards_link','Standards link']])if(e[f]&&!/^https?:\/\//.test(e[f]))er.push(n+' must start with http:// or https://.');
+  for(const [f,n] of [['link','Link'],['signup_link','Sign-up link'],['selection_link','Selection link'],['standards_link','Standards link'],['volunteer_link','Volunteer link']])if(e[f]&&!/^https?:\/\//.test(e[f]))er.push(n+' must start with http:// or https://.');
   if(e.signup_deadline&&!/^\d{4}-\d\d-\d\d$/.test(e.signup_deadline))er.push('Sign-up deadline must be a date.');
+  if(e.volunteer_deadline&&!/^\d{4}-\d\d-\d\d$/.test(e.volunteer_deadline))er.push('Volunteer deadline must be a date.');
+  if(e.volunteer_deadline&&e.start&&e.volunteer_deadline>e.start)er.push('Volunteer deadline is after the event starts.');
   if(e.signup_deadline&&e.start&&e.signup_deadline>e.start)er.push('Sign-up deadline is after the event starts.');
   list(e.standards).forEach(k=>{if(!S.standards.some(s=>s.key===k))er.push('Unknown standard "'+k+'".')});
   return er}
@@ -225,9 +227,11 @@ function eventForm(){
    <div class="field wide"><span class="lbl">Groups</span><div class="chk"><label><input type="checkbox" data-g="All"${gs.includes('All')?' checked':''}> All groups</label>${GROUPS.map(g=>`<label><input type="checkbox" data-g="${g}"${gs.includes(g)?' checked':''}${gs.includes('All')?' disabled':''}> ${g}</label>`).join('')}</div></div>
    <div class="field wide"><label class="lbl" for="f-elig">Eligibility</label><input type="text" id="f-elig" data-f="eligibility" value="${esc(e.eligibility)}" placeholder="e.g. Qualified swimmers, 14 &amp; Under"></div>
    <div class="field wide"><label class="lbl" for="f-tags">Tags</label><input type="text" id="f-tags" data-f="tags" data-tags="1" value="${esc(list(e.tags).join(', '))}" placeholder="comma-separated"><div class="chips">${tags.map(t=>`<button type="button" class="chip" data-act="addtag" data-t="${esc(t)}">${esc(t)}</button>`).join('')}</div></div>
-   <div class="field wide"><h3 style="margin:8px 0 0">Requirements</h3><span class="hint">An event can have a sign-up deadline, a selection process, qualifying standards, or any combination.</span></div>
+   <div class="field wide"><h3 style="margin:8px 0 0">Requirements</h3><span class="hint">An event can have a sign-up deadline, volunteer sign-up, a selection process, qualifying standards, or any combination.</span></div>
    <div class="field"><label class="lbl" for="f-sd">Sign-up deadline</label><input type="date" id="f-sd" data-f="signup_deadline" value="${esc(e.signup_deadline)}"><span class="hint">Also appears in the calendar feeds as its own all-day deadline.</span></div>
    <div class="field"><label class="lbl" for="f-sl">Sign-up link</label><input type="url" id="f-sl" data-f="signup_link" value="${esc(e.signup_link)}" placeholder="https://"></div>
+   <div class="field"><label class="lbl" for="f-vd">Volunteer sign-up deadline</label><input type="date" id="f-vd" data-f="volunteer_deadline" value="${esc(e.volunteer_deadline)}"></div>
+   <div class="field"><label class="lbl" for="f-vl">Volunteer sign-up link</label><input type="url" id="f-vl" data-f="volunteer_link" value="${esc(e.volunteer_link)}" placeholder="https://"><span class="hint">Either field alone is fine. Leave both blank if no volunteers are needed.</span></div>
    <div class="field wide"><label><input type="checkbox" data-f="has_selection"${e.has_selection==='yes'?' checked':''}> This event has a selection process</label></div>
    ${e.has_selection==='yes'?`<div class="field"><label class="lbl" for="f-sel">Link to the selection process</label><input type="url" id="f-sel" data-f="selection_link" value="${esc(e.selection_link)}" placeholder="https://"></div>
    <div class="field"><label class="lbl" for="f-seln">Short summary (optional)</label><input type="text" id="f-seln" data-f="selection_notes" value="${esc(e.selection_notes)}" placeholder="e.g. Invitations go out Mar 1"></div>`:''}
@@ -331,7 +335,7 @@ function savePanel(){
   <div id="pubmsg" role="status"></div></div>`}
 
 /* ---------- events ---------- */
-const blankEvent=()=>({id:'',title:'',start:'',end:'',precision:'day',month_hint:'',type:'meet',groups:'All',eligibility:'',venue:'',status:'Tentative',tags:'',description:'',link:'',needs_review:'',review_note:'',signup_deadline:'',signup_link:'',has_selection:'',selection_link:'',selection_notes:'',has_standards:'',standards:'',standards_link:''});
+const blankEvent=()=>({id:'',title:'',start:'',end:'',precision:'day',month_hint:'',type:'meet',groups:'All',eligibility:'',venue:'',status:'Tentative',tags:'',description:'',link:'',needs_review:'',review_note:'',signup_deadline:'',signup_link:'',has_selection:'',selection_link:'',selection_notes:'',has_standards:'',standards:'',standards_link:'',volunteer_link:'',volunteer_deadline:''});
 const blankStandard=()=>({key:'',name:'',group:'',link:'',notes:''});
 const blankVenue=()=>({key:'',name:'',city:'',state:'',address:'',map_query:'',home:'',verified:''});
 document.addEventListener('input',ev=>{

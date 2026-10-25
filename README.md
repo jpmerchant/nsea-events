@@ -17,8 +17,8 @@ Source of truth: `data/events.csv` + `data/venues.csv`, edited through the admin
 Each edit is a git commit, so anything can be undone from the repo history.
 
 ## Requirements on events
-Each event can have any combination of: a sign-up deadline (+ link), a selection process (+ link and short summary), and qualifying standards (pick from the Standards tab, + optional link to the meet's qualifying times).
-- Sign-up deadlines also appear in the calendar feeds as their own all-day "Sign-up deadline" entries (and in deadlines.ics).
+Each event can have any combination of: a sign-up deadline (+ link), a volunteer sign-up (link and/or deadline), a selection process (+ link and short summary), and qualifying standards (pick from the Standards tab, + optional link to the meet's qualifying times).
+- Sign-up and volunteer deadlines also appear in the calendar feeds as their own all-day entries (and in deadlines.ics) and in the home-page widget.
 - Standards live in `data/standards.csv`. Use the same names as the standards explorer. Set the explorer's page address on the Standards tab (`data/settings.json`); events then link to it as `?std=Name1|Name2`. The explorer needs a small update to read `std` and preselect those standards.
 - The public page has a "Requires" filter for these three.
 

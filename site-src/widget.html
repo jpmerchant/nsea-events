@@ -50,7 +50,7 @@ const safe=u=>/^https?:\/\//.test(u||'')?u:'';
 document.getElementById('list').innerHTML=rows.length?rows.map(r=>{
   const [y,m,dd]=r.date.split('-').map(Number);
   const badge=r.n===0?'<span class="b soon">Today</span>':r.n<=14?`<span class="b soon">${r.n} day${r.n>1?'s':''} left</span>`:`<span class="b">${r.n} days</span>`;
-  const act=safe(r.link)?`<a class="btn p" href="${esc(safe(r.link))}" target="_blank" rel="noopener">Sign up</a>`:'';
+  const act=safe(r.link)?`<a class="btn p" href="${esc(safe(r.link))}" target="_blank" rel="noopener">${esc(r.cta||'Sign up')}</a>`:'';
   return `<li><div class="d"><b>${dd}</b><span>${MON[m-1]}</span></div><div><div class="t">${esc(r.title)}</div>${r.sub?`<div class="s">${esc(r.sub)}</div>`:''}</div><div class="right">${badge}${act}</div></li>`}).join('')
  :'<li class="empty" style="display:block">No upcoming deadlines right now.</li>';
 // Optional: lets a host page resize the frame if it listens for this message
