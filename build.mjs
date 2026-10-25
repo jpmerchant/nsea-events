@@ -141,7 +141,13 @@ for(const f of feeds){const body=ics(CAL_NAME+' - '+f.label,f.evs.concat((f.sign
 
 for(const e of events){const c=changeInfo[e.id];if(c){e.change=c.kind;e.changedOn=c.when.slice(0,10);e.changedWhat=c.what}}
 const recent=events.filter(e=>e.change).map(e=>({id:e.id,title:e.title,kind:e.change,on:e.changedOn,what:e.changedWhat,date:e.start||e.month})).concat(recentChanges.map(c=>({id:c.id,title:c.title,kind:'removed',on:c.when.slice(0,10),what:[],date:''}))).sort((a,b)=>b.on.localeCompare(a.on)||a.title.localeCompare(b.title));
-const payload={built:new Date().toISOString(),recent,standardsToolUrl:settings.standards_tool_url||'',groups:GROUPS,typeLabels:TYPE_LABEL,feeds,events};
+// cut times for the standards actually used by events (data/standard-times.json: sex > age group > event > [name,time,...])
+const usedStd=new Set(events.flatMap(e=>e.standards.map(x=>x.name)));
+const times={};
+if(fs.existsSync('data/standard-times.json')){const T=JSON.parse(fs.readFileSync('data/standard-times.json','utf8'));
+  for(const sx of Object.keys(T))for(const ag of Object.keys(T[sx]))for(const ev of Object.keys(T[sx][ag]))for(const r of T[sx][ag][ev])
+    if(usedStd.has(r[0])){(((times[sx]??={})[ag]??={})[ev]??={})[r[0]]=r[1]}}
+const payload={built:new Date().toISOString(),times,recent,standardsToolUrl:settings.standards_tool_url||'',groups:GROUPS,typeLabels:TYPE_LABEL,feeds,events};
 fs.writeFileSync('site/events.json',JSON.stringify(payload,null,1));
 const widgetItems=[];
 for(const e of events){

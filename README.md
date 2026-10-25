@@ -44,3 +44,7 @@ Options on the URL: `?max=3` (1-15 rows), `?days=60` (only deadlines within 60 d
 
 - **Admin > Needs attention** lists data problems as you edit: tentative meets within 30 days, past dates still tentative, meets with no venue or sign-up deadline, deadlines with no link, selection/standards boxes checked but empty, standards with no link, and anything flagged for review. Click a row to fix it.
 - **Public page** shows a "New" or "Updated" badge (hover for what changed) on events edited in the last 7 days, plus a "Recent changes" list. It is computed at build time from git history of `data/events.csv`; commits touching more than 12 events at once are treated as bulk imports and ignored. The workflow checks out full history (`fetch-depth: 0`) for this.
+
+## Cut times on event cards
+
+`data/standard-times.json` (copied from the standards explorer's `standards.json`) feeds a "Show cut times" panel on each event with qualifying standards: pick Girls/Boys and age group to see a table of cut times for just that event's standards. To refresh after the explorer data changes, replace that file and push. Standards are matched by name, so keep names in `standards.csv` identical to the explorer's.
