@@ -2,7 +2,11 @@
 import fs from 'node:fs';
 const CAL_NAME = 'NSEA Swim 2026-27';
 const GROUPS = ['Splash','Tidepool','Riptide','Breakers','Surge','Senior'];
-const TYPE_LABEL = {meet:'Meet','team-event':'Team event',deadline:'Deadline',schedule:'Schedule',camp:'Camp / zone'};
+const COLORS=['teal','teal-dark','coral','gray'];
+const typeRows=fs.existsSync('data/types.csv')?parseCSV(fs.readFileSync('data/types.csv','utf8')):[{key:'meet',label:'Meet',color:'teal'},{key:'team-event',label:'Team event',color:'teal-dark'},{key:'deadline',label:'Deadline',color:'coral'},{key:'schedule',label:'Schedule',color:'gray'},{key:'camp',label:'Camp / zone',color:'teal'}];
+const TYPE_LABEL=Object.fromEntries(typeRows.map(t=>[t.key,t.label]));
+const TYPE_COLOR=Object.fromEntries(typeRows.map(t=>[t.key,COLORS.includes(t.color)?t.color:'teal']));
+for(const k of ['meet','deadline'])if(!TYPE_LABEL[k]){console.error('types.csv must keep the "'+k+'" type (feeds and widget depend on it)');process.exit(1)}
 
 function parseCSV(t){const rows=[];let row=[],f='',q=false;
   for(let i=0;i<t.length;i++){const c=t[i];
@@ -42,7 +46,7 @@ const events=rows.map(r=>{
   for(const f of ['signup_link','selection_link','standards_link','link'])if(!isUrl(r[f]))errors.push(`${r.id}: ${f} must start with http(s)`);
   if(r.signup_deadline&&r.start&&r.signup_deadline>r.start)warnings.push(`${r.id}: signup deadline is after the event starts`);
   const e={id:r.id,title:r.title,start:r.start||null,end:r.end||null,precision:r.precision,month:r.month_hint||(r.start||'').slice(0,7),
-    type:r.type,typeLabel:TYPE_LABEL[r.type],groups:allGroups?['All']:groups,groupsAll:allGroups,eligibility:r.eligibility,
+    type:r.type,typeLabel:TYPE_LABEL[r.type],typeColor:TYPE_COLOR[r.type]||'teal',groups:allGroups?['All']:groups,groupsAll:allGroups,eligibility:r.eligibility,
     venue:r.venue||'',venueName:v?v.name:'',venueCity:v?[v.city,v.state].filter(Boolean).join(', '):'',home:v?v.home==='yes':false,
     location:locText,status:r.status||'Tentative',tags:list(r.tags),description:r.description,link:r.link,
     needsReview:!!r.needs_review,reviewNote:r.review_note,

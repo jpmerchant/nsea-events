@@ -69,6 +69,8 @@ code{font-family:var(--mono);font-size:12px;background:#eef2f2;padding:1px 5px;b
   <div class="tabs" role="tablist">
     <button class="tab" role="tab" id="t-events" aria-selected="true">Events (<span id="n-ev">0</span>)</button>
     <button class="tab" role="tab" id="t-venues" aria-selected="false">Venues (<span id="n-ve">0</span>)</button>
+    <button class="tab" role="tab" id="t-types" aria-selected="false">Types (<span id="n-ty">0</span>)</button>
+    <button class="tab" role="tab" id="t-tags" aria-selected="false">Tags (<span id="n-tg">0</span>)</button>
     <button class="tab" role="tab" id="t-standards" aria-selected="false">Standards (<span id="n-st">0</span>)</button>
     <button class="tab" role="tab" id="t-save" aria-selected="false">Review &amp; publish <span class="b chg hide" id="dirty">unsaved</span></button>
   </div>
@@ -80,14 +82,19 @@ code{font-family:var(--mono);font-size:12px;background:#eef2f2;padding:1px 5px;b
 <script>
 const $=s=>document.querySelector(s);
 const GROUPS=['Splash','Tidepool','Riptide','Breakers','Surge','Senior'];
-const TYPES={meet:'Meet','team-event':'Team event',deadline:'Deadline',schedule:'Schedule',camp:'Camp / zone'};
+const COLORS={teal:'Teal',"teal-dark":'Dark teal',coral:'Coral',gray:'Gray'};
+const TH=["key","label","color"];
+const DEFAULT_TYPES=[{key:'meet',label:'Meet',color:'teal'},{key:'team-event',label:'Team event',color:'teal-dark'},{key:'deadline',label:'Deadline',color:'coral'},{key:'schedule',label:'Schedule',color:'gray'},{key:'camp',label:'Camp / zone',color:'teal'}];
+const PROTECTED=['meet','deadline'];
+let TYPES={};
+const syncTypes=()=>{TYPES=Object.fromEntries(S.types.map(t=>[t.key,t.label]))};
 const STATUS=['Tentative','Confirmed'];
 const EH=["id","title","start","end","precision","month_hint","type","groups","eligibility","venue","status","tags","description","link","needs_review","review_note","signup_deadline","signup_link","has_selection","selection_link","selection_notes","has_standards","standards","standards_link"];
 const SH=["key","name","group","link","notes"];
 const VH=["key","name","city","state","address","map_query","home","verified"];
-const P={files:{events:'data/events.csv',venues:'data/venues.csv',standards:'data/standards.csv',settings:'data/settings.json'}};
+const P={files:{events:'data/events.csv',venues:'data/venues.csv',standards:'data/standards.csv',settings:'data/settings.json',types:'data/types.csv'}};
 let G={repo:'',branch:'',token:'',headSha:''};
-let S={events:[],venues:[],standards:[],settings:{standards_tool_url:''},origE:'',origV:'',origS:'',origT:'',tab:'events',edit:null,q:''};
+let S={events:[],venues:[],standards:[],types:[],settings:{standards_tool_url:''},origE:'',origV:'',origS:'',origT:'',origY:'',tab:'events',edit:null,q:''};
 
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function parseCSV(t){const rows=[];let row=[],f='',q=false;
@@ -115,7 +122,8 @@ async function load(){
   const opt=p=>rawFile(p).catch(()=>'');
   const [e,v,st,se]=await Promise.all([rawFile(P.files.events),rawFile(P.files.venues),opt(P.files.standards),opt(P.files.settings)]);
   S.standards=norm(parseCSV(st),SH);try{S.settings=Object.assign({standards_tool_url:''},JSON.parse(se||'{}'))}catch(x){S.settings={standards_tool_url:''}}
-  S.origS=toCSV(SH,S.standards);S.origT=settingsText();
+  const ty=await opt(P.files.types);S.types=norm(parseCSV(ty),TH);if(!S.types.length)S.types=DEFAULT_TYPES.map(x=>({...x}));syncTypes();
+  S.origS=toCSV(SH,S.standards);S.origT=settingsText();S.origY=ty?toCSV(TH,S.types):'';
   S.events=norm(parseCSV(e),EH);S.venues=norm(parseCSV(v),VH);
   S.events=sortedEvents();S.origE=toCSV(EH,S.events);S.origV=toCSV(VH,S.venues);S.edit=null;
 }
@@ -123,13 +131,13 @@ async function commit(message){
   const ce=toCSV(EH,sortedEvents()),cv=toCSV(VH,S.venues),cs=toCSV(SH,S.standards),ct=settingsText();
   const tree=[];
   const add=(p,c,o)=>{if(c!==o)tree.push({path:p,mode:'100644',type:'blob',content:c})};
-  add(P.files.events,ce,S.origE);add(P.files.venues,cv,S.origV);add(P.files.standards,cs,S.origS);add(P.files.settings,ct,S.origT);
+  add(P.files.events,ce,S.origE);add(P.files.venues,cv,S.origV);add(P.files.standards,cs,S.origS);add(P.files.settings,ct,S.origT);const cy=toCSV(TH,S.types);add(P.files.types,cy,S.origY===''?'':S.origY);
   if(!tree.length)throw new Error('No changes to save.');
   const head=await (await gh('/git/commits/'+G.headSha)).json();
   const t=await (await gh('/git/trees',{method:'POST',body:JSON.stringify({base_tree:head.tree.sha,tree})})).json();
   const c=await (await gh('/git/commits',{method:'POST',body:JSON.stringify({message,tree:t.sha,parents:[G.headSha]})})).json();
   await gh('/git/refs/heads/'+encodeURIComponent(G.branch),{method:'PATCH',body:JSON.stringify({sha:c.sha,force:false})});
-  G.headSha=c.sha;S.origE=ce;S.origV=cv;S.origS=cs;S.origT=ct;S.events=norm(parseCSV(ce),EH);
+  G.headSha=c.sha;S.origE=ce;S.origV=cv;S.origS=cs;S.origT=ct;S.origY=toCSV(TH,S.types);S.events=norm(parseCSV(ce),EH);
 }
 
 /* ---------- validation ---------- */
@@ -153,6 +161,13 @@ function validEvent(e,idx){
   if(e.signup_deadline&&e.start&&e.signup_deadline>e.start)er.push('Sign-up deadline is after the event starts.');
   list(e.standards).forEach(k=>{if(!S.standards.some(s=>s.key===k))er.push('Unknown standard "'+k+'".')});
   return er}
+function validType(t,idx){
+  const er=[];
+  if(!t.key||!/^[a-z0-9-]+$/.test(t.key))er.push('Key must be lowercase letters, numbers and dashes.');
+  if(S.types.some((x,i)=>x.key===t.key&&i!==idx))er.push('Another type already uses this key.');
+  if(!t.label)er.push('Label is required.');
+  if(!COLORS[t.color])er.push('Pick a color.');
+  return er}
 function validStandard(s,idx){
   const er=[];
   if(!s.key||!/^[a-z0-9-]+$/.test(s.key))er.push('Key must be lowercase letters, numbers and dashes.');
@@ -168,19 +183,21 @@ function validVenue(v,idx){
   return er}
 const settingsText=()=>JSON.stringify(S.settings,null,1)+'\n';
 function sortedEvents(){return [...S.events].sort((a,b)=>(a.start||a.month_hint+'-99').localeCompare(b.start||b.month_hint+'-99'))}
-const dirty=()=>toCSV(EH,sortedEvents())!==S.origE||toCSV(VH,S.venues)!==S.origV||toCSV(SH,S.standards)!==S.origS||settingsText()!==S.origT;
+const dirty=()=>toCSV(EH,sortedEvents())!==S.origE||toCSV(VH,S.venues)!==S.origV||toCSV(SH,S.standards)!==S.origS||settingsText()!==S.origT||(S.origY===''?toCSV(TH,S.types)!==toCSV(TH,DEFAULT_TYPES):toCSV(TH,S.types)!==S.origY);
 
 /* ---------- views ---------- */
 function fmtD(e){if(e.precision!=='day')return 'TBD ('+e.month_hint+')';return e.start===e.end?e.start:e.start+' to '+e.end}
 function setTab(t){S.tab=t;S.edit=null;render()}
 function render(){
-  $('#n-ev').textContent=S.events.length;$('#n-ve').textContent=S.venues.length;$('#n-st').textContent=S.standards.length;
+  $('#n-ev').textContent=S.events.length;$('#n-ve').textContent=S.venues.length;$('#n-st').textContent=S.standards.length;$('#n-ty').textContent=S.types.length;$('#n-tg').textContent=tagCounts().length;
   $('#dirty').classList.toggle('hide',!dirty());
-  for(const t of ['events','venues','standards','save'])$('#t-'+t).setAttribute('aria-selected',S.tab===t);
+  for(const t of ['events','venues','types','tags','standards','save'])$('#t-'+t).setAttribute('aria-selected',S.tab===t);
   const v=$('#view');
   if(S.tab==='events')v.innerHTML=S.edit?eventForm():eventList();
   else if(S.tab==='venues')v.innerHTML=S.edit?venueForm():venueList();
   else if(S.tab==='standards')v.innerHTML=S.edit?standardForm():standardList();
+  else if(S.tab==='types')v.innerHTML=S.edit?typeForm():typeList();
+  else if(S.tab==='tags')v.innerHTML=S.edit?tagForm():tagList();
   else v.innerHTML=savePanel();
 }
 function eventList(){
@@ -251,8 +268,40 @@ function diffSummary(){
   cmp('event','id',S.origE,toCSV(EH,sortedEvents()).replace(/\r/g,''),'');
   cmp('venue','key',S.origV,toCSV(VH,S.venues),'');
   cmp('standard','key',S.origS,toCSV(SH,S.standards),'');
+  cmp('type','key',S.origY||toCSV(TH,DEFAULT_TYPES),toCSV(TH,S.types),'');
   if(settingsText()!==S.origT)out.push(['changed','setting','Check-my-time tool address']);
   return out}
+const tagCounts=()=>{const m={};S.events.forEach(e=>list(e.tags).forEach(t=>m[t]=(m[t]||0)+1));return Object.entries(m).sort((x,y)=>x[0].localeCompare(y[0]))};
+function typeList(){
+  return `<div class="row" style="margin-bottom:10px"><button class="btn primary" data-act="new-type">Add type</button></div>
+  <div class="scroll"><table><thead><tr><th>Label</th><th>Key</th><th>Badge color</th><th>Used by</th></tr></thead><tbody>
+  ${S.types.map((t,i)=>`<tr class="clk" data-act="edit-type" data-i="${i}" tabindex="0"><td><b>${esc(t.label)}</b></td><td>${esc(t.key)}</td><td>${esc(COLORS[t.color]||t.color)}</td><td>${S.events.filter(e=>e.type===t.key).length}</td></tr>`).join('')}
+  </tbody></table></div>
+  <p class="hint">Meet and Deadline are built in (the meets and deadlines calendar feeds and the home-page widget use them), so they can be renamed but not removed.</p>`}
+function typeForm(){
+  const {e:t,isNew,errors}=S.edit;
+  return `<div class="panel"><h3>${isNew?'Add type':'Edit type'}</h3>
+  ${errors.length?`<div class="msg err" role="alert"><b>Fix these first:</b><ul style="margin:4px 0 0 18px">${errors.map(x=>'<li>'+esc(x)+'</li>').join('')}</ul></div>`:''}
+  <div class="grid">
+   <div class="field"><label class="lbl" for="ty-label">Label shown to families</label><input type="text" id="ty-label" data-f="label" value="${esc(t.label)}"></div>
+   <div class="field"><label class="lbl" for="ty-key">Key</label><input type="text" id="ty-key" data-f="key" value="${esc(t.key)}" ${isNew?'':'readonly'}><span class="hint">${isNew?'Filled from the label. ':''}Events point to the key, so it can't change later. Renaming the label is always safe.</span></div>
+   <div class="field"><label class="lbl" for="ty-color">Badge color</label><select id="ty-color" data-f="color">${opt(Object.keys(COLORS),t.color,COLORS)}</select></div>
+  </div>
+  <div class="sticky"><button class="btn primary" data-act="done-type">Save to draft</button><button class="btn" data-act="cancel">Cancel</button>${isNew||PROTECTED.includes(t.key)?'':'<button class="btn danger" data-act="del-type">Delete</button>'}</div></div>`}
+function tagList(){
+  const tc=tagCounts();
+  return `<p class="hint" style="margin-top:0">Click a tag to rename, merge, or remove it everywhere. New tags are added from the event form.</p>
+  <div class="scroll"><table><thead><tr><th>Tag</th><th>Events</th></tr></thead><tbody>
+  ${tc.map(([t,n])=>`<tr class="clk" data-act="edit-tag" data-t="${esc(t)}" tabindex="0"><td><b>${esc(t)}</b></td><td>${n}</td></tr>`).join('')||'<tr><td colspan="2">No tags yet.</td></tr>'}
+  </tbody></table></div>`}
+function tagForm(){
+  const {e,errors}=S.edit;const used=S.events.filter(x=>list(x.tags).includes(e.orig));
+  return `<div class="panel"><h3>Edit tag: ${esc(e.orig)}</h3>
+  ${errors.length?`<div class="msg err" role="alert"><b>Fix these first:</b><ul style="margin:4px 0 0 18px">${errors.map(x=>'<li>'+esc(x)+'</li>').join('')}</ul></div>`:''}
+  <div class="field"><label class="lbl" for="tg-name">New name</label><input type="text" id="tg-name" data-f="name" value="${esc(e.name)}"><span class="hint">Lowercase letters, numbers and dashes. Typing the name of an existing tag merges the two.</span></div>
+  <p class="lbl" style="margin:12px 0 4px">Used on ${used.length} event${used.length===1?'':'s'}</p>
+  <ul style="margin:0 0 0 18px;font-size:14px">${used.map(x=>'<li>'+esc(x.title)+'</li>').join('')}</ul>
+  <div class="sticky"><button class="btn primary" data-act="done-tag">Apply to all events</button><button class="btn" data-act="cancel">Cancel</button><button class="btn danger" data-act="del-tag">Remove from all events</button></div></div>`}
 function standardList(){
   return `<div class="panel"><h3>Check-my-time tool</h3><div class="field"><label class="lbl" for="tool">Standards explorer page address</label><input type="url" id="tool" data-setting="standards_tool_url" value="${esc(S.settings.standards_tool_url)}" placeholder="https://..."><span class="hint">Events with qualifying standards get a "Check my time" link to this page, with the standard names added as <code>?std=</code>. Leave blank to hide the link.</span></div></div>
   <div class="row" style="margin-bottom:10px"><button class="btn primary" data-act="new-standard">Add standard</button></div>
@@ -291,6 +340,7 @@ document.addEventListener('input',ev=>{
   if(!S.edit||!t.dataset)return;const e=S.edit.e;
   if(t.dataset.f&&t.type!=='checkbox'&&t.tagName!=='SELECT'){
     e[t.dataset.f]=t.dataset.tags?list(t.value.replace(/,/g,';')).join(';'):t.value;
+    if(t.dataset.f==='label'&&S.edit.isNew&&S.tab==='types'){e.key=slug(e.label);$('#ty-key').value=e.key}
     if(t.dataset.f==='name'&&S.edit.isNew&&S.tab==='standards'){e.key=slug(e.name);$('#s-key').value=e.key}
     if(t.dataset.f==='title'&&S.edit.isNew&&S.tab==='events'){e.id=slug(e.title);$('#f-id').value=e.id}}
 });
@@ -333,8 +383,23 @@ document.addEventListener('click',async ev=>{
   else if(a==='del-standard'){const k=S.edit.e.key,n=S.events.filter(e=>list(e.standards).includes(k)).length;
     if(n){S.edit.errors=[n+' event(s) still use this standard. Remove it from them first.'];render();return}
     if(confirm('Delete standard '+S.edit.e.name+'?')){S.standards.splice(S.edit.i,1);S.edit=null;render()}}
+  else if(a==='new-type'){S.edit={e:{key:'',label:'',color:'teal'},i:-1,isNew:true,errors:[]};render()}
+  else if(a==='edit-type'){S.edit={e:{...S.types[i]},i,isNew:false,errors:[]};render();window.scrollTo(0,0)}
+  else if(a==='done-type'){const {e,i,isNew}=S.edit;const er=validType(e,i);if(er.length){S.edit.errors=er;render();window.scrollTo(0,0);return}
+    if(isNew)S.types.push(e);else S.types[i]=e;syncTypes();S.edit=null;render()}
+  else if(a==='del-type'){const k=S.edit.e.key,n=S.events.filter(e=>e.type===k).length;
+    if(n){S.edit.errors=[n+' event(s) still use this type. Change them first.'];render();return}
+    if(confirm('Delete type '+S.edit.e.label+'?')){S.types.splice(S.edit.i,1);syncTypes();S.edit=null;render()}}
+  else if(a==='edit-tag'){S.edit={e:{orig:b.dataset.t,name:b.dataset.t},i:-1,isNew:false,errors:[]};render();window.scrollTo(0,0)}
+  else if(a==='done-tag'){const {orig,name}=S.edit.e;const n=name.toLowerCase().trim().replace(/[^a-z0-9-]+/g,'-').replace(/^-+|-+$/g,'');
+    if(!n){S.edit.errors=['Enter a tag name.'];render();return}
+    if(n!==orig){const merge=tagCounts().some(([t])=>t===n);
+      if(merge&&!confirm('"'+n+'" already exists. Merge "'+orig+'" into it?'))return;
+      S.events.forEach(ev=>{const l=list(ev.tags);if(l.includes(orig))ev.tags=[...new Set(l.map(t=>t===orig?n:t))].join(';')})}
+    S.edit=null;render()}
+  else if(a==='del-tag'){const {orig}=S.edit.e;if(confirm('Remove the tag "'+orig+'" from every event?')){S.events.forEach(ev=>{const l=list(ev.tags);if(l.includes(orig))ev.tags=l.filter(t=>t!==orig).join(';')});S.edit=null;render()}}
   else if(a==='cancel'){S.edit=null;render()}
-  else if(a==='discard'){if(confirm('Throw away all unsaved changes?')){S.events=norm(parseCSV(S.origE),EH);S.venues=norm(parseCSV(S.origV),VH);S.standards=norm(parseCSV(S.origS),SH);S.settings=JSON.parse(S.origT);render()}}
+  else if(a==='discard'){if(confirm('Throw away all unsaved changes?')){S.events=norm(parseCSV(S.origE),EH);S.venues=norm(parseCSV(S.origV),VH);S.standards=norm(parseCSV(S.origS),SH);S.settings=JSON.parse(S.origT);S.types=S.origY?norm(parseCSV(S.origY),TH):DEFAULT_TYPES.map(x=>({...x}));syncTypes();render()}}
   else if(a==='publish'){
     const msg=$('#pubmsg');b.disabled=true;msg.innerHTML='<div class="msg ok">Saving...</div>';
     try{
@@ -345,7 +410,7 @@ document.addEventListener('click',async ev=>{
     }catch(err){b.disabled=false;msg.innerHTML='<div class="msg err" role="alert">'+esc(err.message)+(/422|409|fast-forward/i.test(err.message)?' Someone else may have changed the data. Disconnect, reconnect to reload, and re-apply your edit.':'')+'</div>'}}
 });
 document.addEventListener('keydown',ev=>{if(ev.key==='Enter'&&ev.target.matches('tr.clk'))ev.target.click()});
-for(const t of ['events','venues','standards','save'])$('#t-'+t).addEventListener('click',()=>setTab(t));
+for(const t of ['events','venues','types','tags','standards','save'])$('#t-'+t).addEventListener('click',()=>setTab(t));
 window.addEventListener('beforeunload',e=>{if(G.token&&dirty()){e.preventDefault();e.returnValue=''}});
 
 /* ---------- connect ---------- */

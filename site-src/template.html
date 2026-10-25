@@ -60,10 +60,10 @@ details summary{cursor:pointer;font-weight:600;font-size:14px}
 .ttl{font:600 19px/1.25 Oswald,Inter,sans-serif;letter-spacing:.01em;margin:0 0 4px}
 .badges{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0}
 .b{font:700 11px var(--mono);letter-spacing:.03em;padding:3px 9px;border-radius:999px;border:1px solid var(--line);background:var(--chip)}
-.b.type{background:var(--teal);border-color:var(--teal);color:#fff}
-.b.type.deadline{background:var(--coral);border-color:var(--coral)}
-.b.type.schedule{background:var(--gray);border-color:var(--gray)}
-.b.type.team-event{background:var(--teal-d);border-color:var(--teal-d)}
+.b.type{color:#fff;background:var(--teal);border-color:var(--teal)}
+.b.type.c-teal-dark{background:var(--teal-d);border-color:var(--teal-d)}
+.b.type.c-coral{background:var(--coral);border-color:var(--coral)}
+.b.type.c-gray{background:var(--gray);border-color:var(--gray)}
 .b.tent{background:var(--coral-l);border-color:var(--coral);color:#a32a16}
 .meta{font-size:14px;color:var(--gray)}
 .meta a{color:var(--teal-d);font-weight:600}
@@ -185,7 +185,7 @@ function card(e){
     :(e.venue==='TBD'?'<div class="meta">Location TBD</div>':'');
   return `<article class="ev"><div class="date${d.cls||''}"><b>${esc(d.a)}</b><span>${esc(d.b)}</span></div><div>
   <h3 class="ttl">${esc(e.title)}</h3>
-  <div class="badges"><span class="b type ${e.type}">${esc(e.typeLabel)}</span>${e.status==='Tentative'?'<span class="b tent">Tentative</span>':''}${e.precision!=='day'?'<span class="b tent">Date TBD</span>':''}<span class="b">${esc(grp)}</span>${e.eligibility?`<span class="b">${esc(e.eligibility)}</span>`:''}</div>
+  <div class="badges"><span class="b type c-${e.typeColor||'teal'}">${esc(e.typeLabel)}</span>${e.status==='Tentative'?'<span class="b tent">Tentative</span>':''}${e.precision!=='day'?'<span class="b tent">Date TBD</span>':''}<span class="b">${esc(grp)}</span>${e.eligibility?`<span class="b">${esc(e.eligibility)}</span>`:''}</div>
   ${loc}${e.description?`<div class="meta">${esc(e.description)}</div>`:''}
   ${reqs(e)}
   ${e.tags.length?`<div class="tags">${e.tags.map(t=>'#'+esc(t)).join(' ')}</div>`:''}

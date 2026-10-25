@@ -29,6 +29,10 @@ Each event can have any combination of: a sign-up deadline (+ link), a selection
 
 Options on the URL: `?max=3` (1-15 rows), `?days=60` (only deadlines within 60 days). Links to the full calendar go to the site root of the events page.
 
+## Event types and tags
+- **Types tab:** add types, rename labels, pick a badge color. Keys are fixed once created. Meet and Deadline are built in (feeds and the home-page widget use them): rename only. Types in use can't be deleted. Data: `data/types.csv`.
+- **Tags tab:** rename a tag everywhere, merge two tags (rename one to the other's name), or remove a tag from all events. New tags are still added from the event form.
+
 ## Editing notes
 - Undated events: choose "No, month only". They show as "Date TBD" and stay out of the calendar feeds until a date is set.
 - Never change an event's ID after publishing. It is the calendar UID, so a change creates duplicates for subscribers.
