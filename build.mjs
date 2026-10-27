@@ -158,6 +158,9 @@ for(const e of events){
 const wtpl=fs.readFileSync('site-src/widget.html','utf8');
 fs.mkdirSync('site/widget',{recursive:true});
 fs.writeFileSync('site/widget/index.html',wtpl.replace('/*WIDGET_DATA_HERE*/null',()=>JSON.stringify(widgetItems)));
+const stpl=fs.readFileSync('site-src/subscribe.html','utf8');
+fs.mkdirSync('site/subscribe',{recursive:true});
+fs.writeFileSync('site/subscribe/index.html',stpl.replace('/*FEEDS_HERE*/null',()=>JSON.stringify(feeds)).replace('/*GROUPS_HERE*/null',()=>JSON.stringify(GROUPS)));
 const tpl=fs.readFileSync('site-src/template.html','utf8');
 fs.writeFileSync('site/index.html',tpl.replace('/*EVENTS_PAYLOAD_HERE*/null',()=>JSON.stringify(payload)));
 fs.mkdirSync('site/admin',{recursive:true});fs.copyFileSync('site-src/admin.html','site/admin/index.html');

@@ -48,3 +48,7 @@ Options on the URL: `?max=3` (1-15 rows), `?days=60` (only deadlines within 60 d
 ## Cut times on event cards
 
 `data/standard-times.json` (copied from the standards explorer's `standards.json`) feeds a "Show cut times" panel on each event with qualifying standards: pick Girls/Boys and age group to see a table of cut times for just that event's standards. To refresh after the explorer data changes, replace that file and push. Standards are matched by name, so keep names in `standards.csv` identical to the explorer's.
+
+## Subscribe page
+
+`/subscribe/` lists one card per practice group plus Everything, Meets only and Deadlines only, each with Google, Apple/Outlook, Outlook web and Copy link buttons. It is generated from the feeds list, so new groups or feeds appear automatically. Link to it from nseaswimteam.com as needed.
