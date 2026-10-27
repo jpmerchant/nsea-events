@@ -54,3 +54,7 @@ Options on the URL: `?max=3` (1-15 rows), `?days=60` (only deadlines within 60 d
 `/subscribe/` lists one card per practice group plus Everything, Meets only and Deadlines only, each with Google, Apple/Outlook, Outlook web and Copy link buttons. It is generated from the feeds list, so new groups or feeds appear automatically. Link to it from nseaswimteam.com as needed.
 
 `standard_groups` in `data/settings.json` maps one standard to several columns of cut times, e.g. "Motivational (B - AAAA)" shows B, BB, A, AA, AAA, AAAA.
+
+## Move-and-delete in the admin
+
+Venue, type and standard pages show which events use them. If any do, pick a replacement and use "Move events and delete" to reassign them and delete in one step (for a standard, "just remove it" is also an option). Keys stay locked after creation. Tags already support rename, merge and remove-from-all on the Tags tab. Nothing is saved until you publish.

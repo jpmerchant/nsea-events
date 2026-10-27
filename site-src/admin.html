@@ -188,6 +188,24 @@ const settingsText=()=>JSON.stringify(S.settings,null,1)+'\n';
 function sortedEvents(){return [...S.events].sort((a,b)=>(a.start||a.month_hint+'-99').localeCompare(b.start||b.month_hint+'-99'))}
 const dirty=()=>toCSV(EH,sortedEvents())!==S.origE||toCSV(VH,S.venues)!==S.origV||toCSV(SH,S.standards)!==S.origS||settingsText()!==S.origT||(S.origY===''?toCSV(TH,S.types)!==toCSV(TH,DEFAULT_TYPES):toCSV(TH,S.types)!==S.origY);
 
+/* ---------- usage + move-and-delete ---------- */
+const USE={venue:{f:e=>e.venue,list:()=>S.venues.map(v=>[v.key,v.key+' - '+v.name]),none:'(no venue)',noun:'venue'},
+  type:{f:e=>e.type,list:()=>S.types.map(t=>[t.key,t.label]),none:null,noun:'type'},
+  standard:{f:e=>list(e.standards).join(';'),list:()=>S.standards.map(x=>[x.key,x.name]),none:'(just remove it)',noun:'standard'}};
+function usedBy(kind,key){return S.events.filter(e=>kind==='standard'?list(e.standards).includes(key):USE[kind].f(e)===key)}
+function usageBox(kind,key,isNew){
+  if(isNew)return '';const u=usedBy(kind,key),c=USE[kind];
+  if(!u.length)return `<p class="hint">Not used by any event, so it is safe to delete.</p>`;
+  const others=c.list().filter(([k])=>k!==key);
+  const protectedT=kind==='type'&&PROTECTED.includes(key);
+  return `<div class="panel" style="margin-top:10px"><b>Used by ${u.length} event${u.length>1?'s':''}:</b> <span class="hint">${esc(u.slice(0,6).map(e=>e.title).join(', '))}${u.length>6?' and '+(u.length-6)+' more':''}</span>
+  ${protectedT?'':`<div class="row" style="margin-top:8px"><label class="lbl" for="ra-target" style="margin:0">Move them to</label><select id="ra-target" style="width:auto">${c.none?`<option value="">${esc(c.none)}</option>`:''}${others.map(([k,l])=>`<option value="${esc(k)}">${esc(l)}</option>`).join('')}</select><button class="btn danger" data-act="move-del" data-kind="${kind}" data-key="${esc(key)}">Move events and delete this ${c.noun}</button></div>`}</div>`}
+function moveDelete(kind,key){
+  const t=($('#ra-target')||{}).value||'';const u=usedBy(kind,key);
+  if(!confirm('Move '+u.length+' event(s) and delete this '+USE[kind].noun+'? You can still discard the draft before publishing.'))return;
+  u.forEach(e=>{if(kind==='venue')e.venue=t;else if(kind==='type')e.type=t;else{const l=list(e.standards).filter(k=>k!==key);if(t&&!l.includes(t))l.push(t);e.standards=l.join(';');if(!l.length)e.has_standards=''}});
+  if(kind==='venue')S.venues=S.venues.filter(x=>x.key!==key);else if(kind==='type'){S.types=S.types.filter(x=>x.key!==key);syncTypes()}else S.standards=S.standards.filter(x=>x.key!==key);
+  S.edit=null;render()}
 /* ---------- needs attention ---------- */
 function attention(){
   const out=[],iso=d=>d.toISOString().slice(0,10),today=iso(new Date()),in30=iso(new Date(Date.now()+30*864e5));
@@ -288,7 +306,7 @@ function venueForm(){
    <div class="field"><label><input type="checkbox" data-f="home"${v.home==='yes'?' checked':''}> Home pool</label></div>
    <div class="field"><label><input type="checkbox" data-f="verified"${v.verified==='yes'?' checked':''}> Address verified</label></div>
   </div>
-  <div class="sticky"><button class="btn primary" data-act="done-venue">Save to draft</button><button class="btn" data-act="cancel">Cancel</button>${isNew?'':'<button class="btn danger" data-act="del-venue">Delete</button>'}</div></div>`}
+  ${usageBox('venue',v.key,isNew)}<div class="sticky"><button class="btn primary" data-act="done-venue">Save to draft</button><button class="btn" data-act="cancel">Cancel</button>${isNew?'':'<button class="btn danger" data-act="del-venue">Delete</button>'}</div></div>`}
 function diffSummary(){
   const out=[];
   const cmp=(kind,keyf,a,b,label)=>{const A=new Map(parseCSV(a).map(r=>[r[keyf],JSON.stringify(r)])),B=new Map(parseCSV(b).map(r=>[r[keyf],JSON.stringify(r)]));
@@ -316,7 +334,7 @@ function typeForm(){
    <div class="field"><label class="lbl" for="ty-key">Key</label><input type="text" id="ty-key" data-f="key" value="${esc(t.key)}" ${isNew?'':'readonly'}><span class="hint">${isNew?'Filled from the label. ':''}Events point to the key, so it can't change later. Renaming the label is always safe.</span></div>
    <div class="field"><label class="lbl" for="ty-color">Badge color</label><select id="ty-color" data-f="color">${opt(Object.keys(COLORS),t.color,COLORS)}</select></div>
   </div>
-  <div class="sticky"><button class="btn primary" data-act="done-type">Save to draft</button><button class="btn" data-act="cancel">Cancel</button>${isNew||PROTECTED.includes(t.key)?'':'<button class="btn danger" data-act="del-type">Delete</button>'}</div></div>`}
+  ${usageBox('type',t.key,isNew)}<div class="sticky"><button class="btn primary" data-act="done-type">Save to draft</button><button class="btn" data-act="cancel">Cancel</button>${isNew||PROTECTED.includes(t.key)?'':'<button class="btn danger" data-act="del-type">Delete</button>'}</div></div>`}
 function tagList(){
   const tc=tagCounts();
   return `<p class="hint" style="margin-top:0">Click a tag to rename, merge, or remove it everywhere. New tags are added from the event form.</p>
@@ -348,7 +366,7 @@ function standardForm(){
    <div class="field"><label class="lbl" for="s-link">Link to the official standards (optional)</label><input type="url" id="s-link" data-f="link" value="${esc(s.link)}" placeholder="https://"></div>
    <div class="field wide"><label class="lbl" for="s-notes">Notes</label><textarea id="s-notes" data-f="notes">${esc(s.notes)}</textarea></div>
   </div>
-  <div class="sticky"><button class="btn primary" data-act="done-standard">Save to draft</button><button class="btn" data-act="cancel">Cancel</button>${isNew?'':'<button class="btn danger" data-act="del-standard">Delete</button>'}</div></div>`}
+  ${usageBox('standard',s.key,isNew)}<div class="sticky"><button class="btn primary" data-act="done-standard">Save to draft</button><button class="btn" data-act="cancel">Cancel</button>${isNew?'':'<button class="btn danger" data-act="del-standard">Delete</button>'}</div></div>`}
 function savePanel(){
   const d=diffSummary();
   const title={}; S.events.forEach(e=>title[e.id]=e.title);
@@ -405,6 +423,7 @@ document.addEventListener('click',async ev=>{
   else if(a==='del-venue'){const k=S.edit.e.key,n=S.events.filter(e=>e.venue===k).length;
     if(n){S.edit.errors=[n+' event(s) still use this venue. Change them first.'];render();return}
     if(confirm('Delete venue '+k+'?')){S.venues.splice(S.edit.i,1);S.edit=null;render()}}
+  else if(a==='move-del')moveDelete(b.dataset.kind,b.dataset.key);
   else if(a==='new-standard'){S.edit={e:blankStandard(),i:-1,isNew:true,errors:[]};render()}
   else if(a==='attn-std'){const j=S.standards.findIndex(x=>x.key===b.dataset.i);S.tab='standards';S.edit={e:{...S.standards[j]},i:j,isNew:false,errors:[]};render();window.scrollTo(0,0)}
   else if(a==='edit-standard'){S.edit={e:{...S.standards[i]},i,isNew:false,errors:[]};render();window.scrollTo(0,0)}
