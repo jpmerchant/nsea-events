@@ -1,3 +1,13 @@
 {
- "standards_tool_url": "https://www.nseaswimteam.com/check-my-time"
+ "standards_tool_url": "https://www.nseaswimteam.com/check-my-time",
+ "standard_groups": {
+  "Motivational (B - AAAA)": [
+   "B",
+   "BB",
+   "A",
+   "AA",
+   "AAA",
+   "AAAA"
+  ]
+ }
 }

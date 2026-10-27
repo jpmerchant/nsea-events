@@ -175,13 +175,14 @@ function match(e){
 const DOW=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 function fmtDay(s){const [y,m,d]=s.split('-').map(Number);return DOW[new Date(Date.UTC(y,m-1,d)).getUTCDay()]+' '+MON[m-1]+' '+d+', '+y}
 function daysUntil(s){const [y,m,d]=s.split('-').map(Number),[ty,tm,td]=todayStr.split('-').map(Number);return Math.round((Date.UTC(y,m-1,d)-Date.UTC(ty,tm-1,td))/864e5)}
-const TIMES=DATA.times||{},TIMES_HAVE={};
+const TIMES=DATA.times||{},TIMES_HAVE={},SG=DATA.stdGroups||{};
+const expand=a=>a.flatMap(n=>SG[n]||[n]);
 for(const sx in TIMES)for(const ag in TIMES[sx])for(const ev in TIMES[sx][ag])for(const n in TIMES[sx][ag][ev])TIMES_HAVE[n]=1;
 const EVORDER=['50 FR','100 FR','200 FR','500 FR','1000 FR','1650 FR','50 BK','100 BK','200 BK','50 BR','100 BR','200 BR','50 FL','100 FL','200 FL','100 IM','200 IM','400 IM'];
 const AGS=['10&U','11-12','13-14','15-16','17-18','Open'];
 let cutSex='W',cutAg='13-14';
 function cutHTML(id){
-  const e=E.find(x=>x.id===id),names=e.standards.map(x=>x.name).filter(n=>TIMES_HAVE[n]);
+  const e=E.find(x=>x.id===id),names=expand(e.standards.map(x=>x.name)).filter(n=>TIMES_HAVE[n]);
   const D=(TIMES[cutSex]||{})[cutAg]||{};
   const evs=EVORDER.filter(v=>names.some(n=>D[v]&&D[v][n]));
   const cols=names.filter(n=>evs.some(v=>D[v][n]));
@@ -201,7 +202,7 @@ function reqs(e){
     const flag=n==null?'':n<0?'<span class="b">Closed</span>':n===0?'<span class="b soon">Due today</span>':n<=7?`<span class="b soon">${n} day${n>1?'s':''} left</span>`:'';
     h+=`<div class="req"><span class="rk">Volunteer${e.volunteerDeadline?' by':''}</span>${e.volunteerDeadline?`<b${n<0?' class="done"':''}>${esc(fmtDay(e.volunteerDeadline))}</b> ${flag} `:''}${e.volunteerLink&&(n==null||n>=0)?`<a href="${esc(e.volunteerLink)}" target="_blank" rel="noopener">Volunteer sign-up</a>`:(e.volunteerLink?'':'<span class="meta">(link coming)</span>')}${e.volunteerAddToGoogle&&n>=0?` &middot; <a href="${e.volunteerAddToGoogle}" target="_blank" rel="noopener">Add deadline to calendar</a>`:''}</div>`}
   if(e.hasSelection)h+=`<div class="req"><span class="rk">Selection process</span>${e.selectionNotes?esc(e.selectionNotes)+' ':''}${e.selectionLink?`<a href="${esc(e.selectionLink)}" target="_blank" rel="noopener">How selection works</a>`:'<span class="meta">(details coming)</span>'}</div>`;
-  if(e.hasStandards){const has=e.standards.some(x=>TIMES_HAVE[x.name]);
+  if(e.hasStandards){const has=expand(e.standards.map(x=>x.name)).some(n=>TIMES_HAVE[n]);
     h+=`<div class="req"><span class="rk">Qualifying standards</span>${e.standards.map(s=>`<span class="b">${esc(s.name)}</span>`).join('')}${e.standards.length?'':'<span class="meta">see meet info</span> '}${e.toolUrl?`<a href="${esc(e.toolUrl)}" target="_blank" rel="noopener">Check my time</a>`:''}${e.standardsLink?`${e.toolUrl?' &middot; ':''}<a href="${esc(e.standardsLink)}" target="_blank" rel="noopener">Meet standards</a>`:''}
     ${has?`<details class="cuts" data-id="${esc(e.id)}"><summary>Show cut times</summary><div class="cutbody"></div></details>`:''}</div>`}
   return h?`<div class="reqs">${h}</div>`:''}

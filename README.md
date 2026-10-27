@@ -52,3 +52,5 @@ Options on the URL: `?max=3` (1-15 rows), `?days=60` (only deadlines within 60 d
 ## Subscribe page
 
 `/subscribe/` lists one card per practice group plus Everything, Meets only and Deadlines only, each with Google, Apple/Outlook, Outlook web and Copy link buttons. It is generated from the feeds list, so new groups or feeds appear automatically. Link to it from nseaswimteam.com as needed.
+
+`standard_groups` in `data/settings.json` maps one standard to several columns of cut times, e.g. "Motivational (B - AAAA)" shows B, BB, A, AA, AAA, AAAA.
