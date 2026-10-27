@@ -58,3 +58,11 @@ Options on the URL: `?max=3` (1-15 rows), `?days=60` (only deadlines within 60 d
 ## Move-and-delete in the admin
 
 Venue, type and standard pages show which events use them. If any do, pick a replacement and use "Move events and delete" to reassign them and delete in one step (for a standard, "just remove it" is also an option). Keys stay locked after creation. Tags already support rename, merge and remove-from-all on the Tags tab. Nothing is saved until you publish.
+
+## Meet info status
+
+Each event has a "Meet info" field: Not set, Waiting on host, or Info complete. "Waiting on host" shows a "Details pending" badge on the public page. Needs attention lists events still waiting and meets within 30 days not yet marked Info complete.
+
+## Refreshing cut times
+
+Admin > Standards > Cut times: choose the latest `standards.json` from the standards explorer. The admin checks the file, shows what changed per standard (and any standard from your list that is missing), and stages it. Publish it from the Review tab like any other change. The build also warns if a standard has no cut times.

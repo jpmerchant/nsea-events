@@ -28,7 +28,7 @@ const toolUrl=(keys)=>{const u=(settings.standards_tool_url||'').trim();if(!u||!
 const isUrl=s=>!s||/^https?:\/\//.test(s);
 // ---- change visibility: diff data/events.csv across recent commits (needs full git history; skipped quietly if unavailable)
 const RECENT_DAYS=7;
-const FIELD_LABEL={title:'name',start:'dates',end:'dates',precision:'dates',month_hint:'dates',type:'type',groups:'groups',eligibility:'eligibility',venue:'venue',status:'status',signup_deadline:'sign-up deadline',signup_link:'sign-up link',has_selection:'selection process',selection_link:'selection process',selection_notes:'selection process',has_standards:'standards',standards:'standards',standards_link:'standards',volunteer_link:'volunteer link',volunteer_deadline:'volunteer deadline',description:'details',link:'details link'};
+const FIELD_LABEL={info_status:'info status',title:'name',start:'dates',end:'dates',precision:'dates',month_hint:'dates',type:'type',groups:'groups',eligibility:'eligibility',venue:'venue',status:'status',signup_deadline:'sign-up deadline',signup_link:'sign-up link',has_selection:'selection process',selection_link:'selection process',selection_notes:'selection process',has_standards:'standards',standards:'standards',standards_link:'standards',volunteer_link:'volunteer link',volunteer_deadline:'volunteer deadline',description:'details',link:'details link'};
 const changeInfo={};
 let recentChanges=[];
 try{
@@ -75,7 +75,7 @@ const events=rows.map(r=>{
     type:r.type,typeLabel:TYPE_LABEL[r.type],typeColor:TYPE_COLOR[r.type]||'teal',groups:allGroups?['All']:groups,groupsAll:allGroups,eligibility:r.eligibility,
     venue:r.venue||'',venueName:v?v.name:'',venueCity:v?[v.city,v.state].filter(Boolean).join(', '):'',home:v?v.home==='yes':false,
     location:locText,status:r.status||'Tentative',tags:list(r.tags),description:r.description,link:r.link,
-    needsReview:!!r.needs_review,reviewNote:r.review_note,
+    infoStatus:r.info_status||'',needsReview:!!r.needs_review,reviewNote:r.review_note,
     signupDeadline:r.signup_deadline||null,signupLink:r.signup_link,volunteerDeadline:r.volunteer_deadline||null,volunteerLink:r.volunteer_link||'',
     hasSelection:r.has_selection==='yes',selectionLink:r.selection_link,selectionNotes:r.selection_notes,
     hasStandards:r.has_standards==='yes',standardsLink:r.standards_link,
@@ -144,10 +144,13 @@ const recent=events.filter(e=>e.change).map(e=>({id:e.id,title:e.title,kind:e.ch
 // cut times for the standards actually used by events (data/standard-times.json: sex > age group > event > [name,time,...])
 const stdGroups=settings.standard_groups||{};
 const usedStd=new Set(events.flatMap(e=>e.standards.flatMap(x=>stdGroups[x.name]||[x.name])));
-const times={};
+const times={},allTimes={};
 if(fs.existsSync('data/standard-times.json')){const T=JSON.parse(fs.readFileSync('data/standard-times.json','utf8'));
+  for(const sx of Object.keys(T))for(const ag of Object.keys(T[sx]))for(const ev of Object.keys(T[sx][ag]))for(const r of T[sx][ag][ev])(((allTimes[sx]??={})[ag]??={})[ev]??={})[r[0]]=r[1];
   for(const sx of Object.keys(T))for(const ag of Object.keys(T[sx]))for(const ev of Object.keys(T[sx][ag]))for(const r of T[sx][ag][ev])
     if(usedStd.has(r[0])){(((times[sx]??={})[ag]??={})[ev]??={})[r[0]]=r[1]}}
+for(const st of standardsList){const names=stdGroups[st.name]||[st.name];
+  if(!names.some(n=>{for(const sx in allTimes)for(const ag in allTimes[sx])for(const ev in allTimes[sx][ag])if(ev&&allTimes[sx][ag][ev][n])return true}))warnings.push(`standard "${st.name}" has no cut times in data/standard-times.json`)}
 const payload={built:new Date().toISOString(),times,stdGroups,recent,standardsToolUrl:settings.standards_tool_url||'',groups:GROUPS,typeLabels:TYPE_LABEL,feeds,events};
 fs.writeFileSync('site/events.json',JSON.stringify(payload,null,1));
 const widgetItems=[];

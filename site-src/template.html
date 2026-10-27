@@ -213,7 +213,7 @@ function card(e){
     :(e.venue==='TBD'?'<div class="meta">Location TBD</div>':'');
   return `<article class="ev"><div class="date${d.cls||''}"><b>${esc(d.a)}</b><span>${esc(d.b)}</span></div><div>
   <h3 class="ttl">${esc(e.title)}</h3>
-  <div class="badges"><span class="b type c-${e.typeColor||'teal'}">${esc(e.typeLabel)}</span>${e.change?`<span class="b new" title="${esc((e.change==='new'?'Added ':'Updated ')+e.changedOn+(e.changedWhat&&e.changedWhat.length?': '+e.changedWhat.join(', '):''))}">${e.change==='new'?'New':'Updated'}</span>`:''}${e.status==='Tentative'?'<span class="b tent">Tentative</span>':''}${e.precision!=='day'?'<span class="b tent">Date TBD</span>':''}<span class="b">${esc(grp)}</span>${e.eligibility?`<span class="b">${esc(e.eligibility)}</span>`:''}</div>
+  <div class="badges"><span class="b type c-${e.typeColor||'teal'}">${esc(e.typeLabel)}</span>${e.change?`<span class="b new" title="${esc((e.change==='new'?'Added ':'Updated ')+e.changedOn+(e.changedWhat&&e.changedWhat.length?': '+e.changedWhat.join(', '):''))}">${e.change==='new'?'New':'Updated'}</span>`:''}${e.status==='Tentative'?'<span class="b tent">Tentative</span>':''}${e.infoStatus==='waiting'?'<span class="b tent" title="Waiting on the host for the meet info">Details pending</span>':''}${e.precision!=='day'?'<span class="b tent">Date TBD</span>':''}<span class="b">${esc(grp)}</span>${e.eligibility?`<span class="b">${esc(e.eligibility)}</span>`:''}</div>
   ${loc}${e.description?`<div class="meta">${esc(e.description)}</div>`:''}
   ${reqs(e)}
   ${e.tags.length?`<div class="tags">${e.tags.map(t=>'#'+esc(t)).join(' ')}</div>`:''}
