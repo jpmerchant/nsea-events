@@ -90,7 +90,7 @@ const PROTECTED=['meet','deadline'];
 let TYPES={};
 const syncTypes=()=>{TYPES=Object.fromEntries(S.types.map(t=>[t.key,t.label]))};
 const STATUS=['Tentative','Confirmed'];
-const INFO={'':'Not set','waiting':'Waiting on host','ready':'Info complete'};
+const INFO={'':'Not set','waiting':'Packet not posted yet (waiting on host)','ready':'Packet posted in Captyn'};
 const EH=["id","title","start","end","precision","month_hint","type","groups","eligibility","venue","status","tags","description","link","needs_review","review_note","signup_deadline","signup_link","has_selection","selection_link","selection_notes","has_standards","standards","standards_link","volunteer_link","volunteer_deadline","info_status"];
 const SH=["key","name","group","link","notes"];
 const VH=["key","name","city","state","address","map_query","home","verified"];
@@ -255,8 +255,8 @@ function attention(){
     if(e.volunteer_deadline&&!e.volunteer_link)add('Volunteer deadline has no volunteer link.');
     if(e.has_selection==='yes'&&!e.selection_link&&!e.selection_notes)add('Selection process is checked but has no link or notes.');
     if(e.has_standards==='yes'&&!list(e.standards).length)add('Qualifying standards is checked but none are chosen.');
-    if(e.info_status==='waiting'&&(!day||e.start<=in30)&&(!day||e.end>=today))add('Still waiting on host info'+(day?'':' (date not set)')+'.',day&&e.start<=in30?2:1);
-    if(e.type==='meet'&&day&&e.end>=today&&e.start<=in30&&e.info_status!=='ready'&&e.info_status!=='waiting')add('Meet within 30 days is not marked Info complete.');
+    if(e.info_status==='waiting'&&(!day||e.start<=in30)&&(!day||e.end>=today))add('Meet packet not posted in Captyn yet'+(day?'':' (date not set)')+'.',day&&e.start<=in30?2:1);
+    if(e.type==='meet'&&day&&e.end>=today&&e.start<=in30&&e.info_status!=='ready'&&e.info_status!=='waiting')add('Meet within 30 days is not marked as having its packet posted in Captyn.');
     if(e.needs_review)add('Flagged for review'+(e.review_note?': '+e.review_note:'.'));
   });
   S.standards.forEach(s=>{if(!s.link)out.push({std:s.key,title:s.name,date:'Standard',msg:'No official link.',lvl:0})});
@@ -286,7 +286,7 @@ function eventList(){
   const rows=sortedEvents().map(e=>[e,S.events.indexOf(e)]).filter(([e])=>!q||(e.title+' '+e.venue+' '+e.tags+' '+e.type).toLowerCase().includes(q));
   return `<div class="row" style="margin-bottom:10px"><input type="search" id="q" placeholder="Search events" value="${esc(S.q)}" style="flex:1 1 220px;width:auto"><button class="btn primary" data-act="new-event">Add event</button></div>
   <div class="scroll"><table><thead><tr><th>Date</th><th>Event</th><th>Type</th><th>Groups</th><th>Venue</th><th></th></tr></thead><tbody>
-  ${rows.map(([e,i])=>`<tr class="clk" data-act="edit-event" data-i="${i}" tabindex="0"><td>${esc(fmtD(e))}</td><td><b>${esc(e.title)}</b></td><td>${esc(TYPES[e.type]||e.type)}</td><td>${esc(list(e.groups).join(', '))}</td><td>${esc(e.venue)}</td><td>${e.needs_review?'<span class="b warn">review</span> ':''}${e.info_status==='waiting'?'<span class="b warn">waiting on host</span> ':''}${e.info_status==='ready'?'<span class="b">info complete</span> ':''}${e.status==='Confirmed'?'<span class="b">confirmed</span>':''}</td></tr>`).join('')||'<tr><td colspan="6">No events.</td></tr>'}
+  ${rows.map(([e,i])=>`<tr class="clk" data-act="edit-event" data-i="${i}" tabindex="0"><td>${esc(fmtD(e))}</td><td><b>${esc(e.title)}</b></td><td>${esc(TYPES[e.type]||e.type)}</td><td>${esc(list(e.groups).join(', '))}</td><td>${esc(e.venue)}</td><td>${e.needs_review?'<span class="b warn">review</span> ':''}${e.info_status==='waiting'?'<span class="b warn">packet not posted</span> ':''}${e.info_status==='ready'?'<span class="b">packet posted</span> ':''}${e.status==='Confirmed'?'<span class="b">confirmed</span>':''}</td></tr>`).join('')||'<tr><td colspan="6">No events.</td></tr>'}
   </tbody></table></div>`}
 function opt(vals,sel,lab){return vals.map(v=>`<option value="${esc(v)}"${v===sel?' selected':''}>${esc(lab?lab[v]:v)}</option>`).join('')}
 function eventForm(){
@@ -298,7 +298,7 @@ function eventForm(){
    <div class="field wide"><label class="lbl" for="f-title">Title</label><input type="text" id="f-title" data-f="title" value="${esc(e.title)}"></div>
    <div class="field"><label class="lbl" for="f-type">Type</label><select id="f-type" data-f="type"><option value="">Choose...</option>${opt(Object.keys(TYPES),e.type,TYPES)}</select></div>
    <div class="field"><label class="lbl" for="f-status">Status</label><select id="f-status" data-f="status">${opt(STATUS,e.status)}</select></div>
-   <div class="field"><label class="lbl" for="f-info">Meet info</label><select id="f-info" data-f="info_status">${opt(Object.keys(INFO),e.info_status||'',INFO)}</select><span class="hint">"Waiting on host" shows a "Details pending" badge on the public page.</span></div>
+   <div class="field"><label class="lbl" for="f-info">Meet packet in Captyn</label><select id="f-info" data-f="info_status">${opt(Object.keys(INFO),e.info_status||'',INFO)}</select><span class="hint">"Not posted yet" shows a "Details pending" badge on the public page.</span></div>
    <div class="field"><label class="lbl" for="f-prec">Date known?</label><select id="f-prec" data-f="precision"><option value="day"${e.precision==='day'?' selected':''}>Yes, exact dates</option><option value="month"${e.precision!=='day'?' selected':''}>No, month only (stays out of calendar feeds)</option></select></div>
    ${e.precision==='day'?`<div class="field"><label class="lbl" for="f-start">Start date</label><input type="date" id="f-start" data-f="start" value="${esc(e.start)}"></div>
    <div class="field"><label class="lbl" for="f-end">End date</label><input type="date" id="f-end" data-f="end" value="${esc(e.end)}"><span class="hint">Same as start for a one-day event.</span></div>`
@@ -309,7 +309,7 @@ function eventForm(){
    <div class="field wide"><label class="lbl" for="f-tags">Tags</label><input type="text" id="f-tags" data-f="tags" data-tags="1" value="${esc(list(e.tags).join(', '))}" placeholder="comma-separated"><div class="chips">${tags.map(t=>`<button type="button" class="chip" data-act="addtag" data-t="${esc(t)}">${esc(t)}</button>`).join('')}</div></div>
    <div class="field wide"><h3 style="margin:8px 0 0">Requirements</h3><span class="hint">An event can have a sign-up deadline, volunteer sign-up, a selection process, qualifying standards, or any combination.</span></div>
    <div class="field"><label class="lbl" for="f-sd">Sign-up deadline</label><input type="date" id="f-sd" data-f="signup_deadline" value="${esc(e.signup_deadline)}"><span class="hint">Also appears in the calendar feeds as its own all-day deadline.</span></div>
-   <div class="field"><label class="lbl" for="f-sl">Sign-up link</label><input type="url" id="f-sl" data-f="signup_link" value="${esc(e.signup_link)}" placeholder="https://"></div>
+   <div class="field"><label class="lbl" for="f-sl">Sign-up link</label><input type="url" id="f-sl" data-f="signup_link" value="${esc(e.signup_link)}" placeholder="https://"><span class="hint">For meets, paste the link to this meet's page in Captyn. The card then says "Enter in Captyn" and points families there for entries, billing and the packet.</span></div>
    <div class="field"><label class="lbl" for="f-vd">Volunteer sign-up deadline</label><input type="date" id="f-vd" data-f="volunteer_deadline" value="${esc(e.volunteer_deadline)}"></div>
    <div class="field"><label class="lbl" for="f-vl">Volunteer sign-up link</label><input type="url" id="f-vl" data-f="volunteer_link" value="${esc(e.volunteer_link)}" placeholder="https://"><span class="hint">Either field alone is fine. Leave both blank if no volunteers are needed.</span></div>
    <div class="field wide"><label><input type="checkbox" data-f="has_selection"${e.has_selection==='yes'?' checked':''}> This event has a selection process</label></div>

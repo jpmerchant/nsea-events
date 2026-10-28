@@ -193,11 +193,13 @@ document.addEventListener('toggle',ev=>{const d=ev.target;if(d.matches&&d.matche
 document.addEventListener('change',ev=>{const t=ev.target.closest&&ev.target.closest('select[data-cut]');if(!t)return;
   if(t.dataset.cut==='sex')cutSex=t.value;else cutAg=t.value;
   document.querySelectorAll('details.cuts[open]').forEach(d=>d.querySelector('.cutbody').innerHTML=cutHTML(d.dataset.id))});
+const isCaptyn=u=>{try{return /(^|\.)captyn\.com$/i.test(new URL(u).hostname)}catch(x){return false}};
 function reqs(e){
   let h='';
   if(e.signupDeadline){const n=daysUntil(e.signupDeadline);
     const flag=n<0?'<span class="b">Closed</span>':n===0?'<span class="b soon">Due today</span>':n<=7?`<span class="b soon">${n} day${n>1?'s':''} left</span>`:'';
-    h+=`<div class="req"><span class="rk">Sign up by</span><b${n<0?' class="done"':''}>${esc(fmtDay(e.signupDeadline))}</b> ${flag} ${e.signupLink?`<a href="${esc(e.signupLink)}" target="_blank" rel="noopener">Sign up</a>`:'<span class="meta">(link coming)</span>'}${e.signupAddToGoogle&&n>=0?` &middot; <a href="${e.signupAddToGoogle}" target="_blank" rel="noopener">Add deadline to calendar</a>`:''}</div>`}
+    h+=`<div class="req"><span class="rk">Sign up by</span><b${n<0?' class="done"':''}>${esc(fmtDay(e.signupDeadline))}</b> ${flag} ${e.signupLink?`<a href="${esc(e.signupLink)}" target="_blank" rel="noopener">${isCaptyn(e.signupLink)?'Enter in Captyn':'Sign up'}</a>`:'<span class="meta">(link coming)</span>'}${e.signupAddToGoogle&&n>=0?` &middot; <a href="${e.signupAddToGoogle}" target="_blank" rel="noopener">Add deadline to calendar</a>`:''}</div>
+    ${e.signupLink&&isCaptyn(e.signupLink)&&e.type==='meet'?`<div class="req"><span class="rk">In Captyn</span>Entries, billing and the meet packet${e.infoStatus==='waiting'?' <span class="meta">(packet not posted yet)</span>':''}.</div>`:''}`}
   if(e.volunteerDeadline||e.volunteerLink){const n=e.volunteerDeadline?daysUntil(e.volunteerDeadline):null;
     const flag=n==null?'':n<0?'<span class="b">Closed</span>':n===0?'<span class="b soon">Due today</span>':n<=7?`<span class="b soon">${n} day${n>1?'s':''} left</span>`:'';
     h+=`<div class="req"><span class="rk">Volunteer${e.volunteerDeadline?' by':''}</span>${e.volunteerDeadline?`<b${n<0?' class="done"':''}>${esc(fmtDay(e.volunteerDeadline))}</b> ${flag} `:''}${e.volunteerLink&&(n==null||n>=0)?`<a href="${esc(e.volunteerLink)}" target="_blank" rel="noopener">Volunteer sign-up</a>`:(e.volunteerLink?'':'<span class="meta">(link coming)</span>')}${e.volunteerAddToGoogle&&n>=0?` &middot; <a href="${e.volunteerAddToGoogle}" target="_blank" rel="noopener">Add deadline to calendar</a>`:''}</div>`}

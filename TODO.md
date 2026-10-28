@@ -10,3 +10,5 @@
 8. ~~Move the events admin into the unified nsea-site admin console~~ (done: the console has events and calendar admin).
 
 Also open: save the newsletter skill proposal (reads this repo's data); optional cache-buster on the nsea-site calendar embed (needs push access to nsea-site).
+
+Done 2026-10-28: Captyn/calendar split ("Enter in Captyn" button, "In Captyn" line, Meet packet status).

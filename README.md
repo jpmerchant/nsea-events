@@ -66,3 +66,7 @@ Each event has a "Meet info" field: Not set, Waiting on host, or Info complete. 
 ## Refreshing cut times
 
 Admin > Standards > Cut times: choose the latest `standards.json` from the standards explorer. The admin checks the file, shows what changed per standard (and any standard from your list that is missing), and stages it. Publish it from the Review tab like any other change. The build also warns if a standard has no cut times.
+
+## Captyn and the calendar
+
+Captyn holds entries, billing and meet packets; the calendar holds dates, venue, deadlines, selection and standards. For meets, put the link to the meet's Captyn page in "Sign-up link". Any captyn.com link makes the card say "Enter in Captyn" with an "In Captyn: entries, billing and the meet packet" line. The "Meet packet in Captyn" field (Not set / Packet not posted yet / Packet posted in Captyn) drives the "Details pending" badge and the Needs attention list. Packet details are not copied to the website, so there is one place to update.
