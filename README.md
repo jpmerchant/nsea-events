@@ -70,3 +70,7 @@ Admin > Standards > Cut times: choose the latest `standards.json` from the stand
 ## Captyn and the calendar
 
 Captyn holds entries, billing and meet packets; the calendar holds dates, venue, deadlines, selection and standards. For meets, put the link to the meet's Captyn page in "Sign-up link". Any captyn.com link makes the card say "Enter in Captyn" with an "In Captyn: entries, billing and the meet packet" line. The "Meet packet in Captyn" field (Not set / Packet not posted yet / Packet posted in Captyn) drives the "Details pending" badge and the Needs attention list. Packet details are not copied to the website, so there is one place to update.
+
+## Add to calendar menu
+
+Each event card (and its sign-up and volunteer deadline rows) has an "Add to calendar" dropdown: Google Calendar, or an .ics file that opens in Apple Calendar and Outlook. The .ics is built in the browser from the same data as the Google link, so no extra data is needed. An Outlook-web option is not included because its all-day end-date handling could not be verified.

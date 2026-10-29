@@ -31,6 +31,9 @@ input[type=search]{flex:1 1 220px}
 .dd>summary.on{background:var(--teal);border-color:var(--teal);color:#fff}
 .dd>summary.on::after{border-color:#fff}
 .dd>summary:focus-visible{outline:3px solid var(--coral);outline-offset:2px}
+.acal{position:relative;display:inline-block}.acal>summary{list-style:none;cursor:pointer;display:inline-flex;align-items:center;gap:6px}.acal>summary::-webkit-details-marker{display:none}.acal>summary::after{content:"";border:solid currentColor;border-width:0 2px 2px 0;padding:3px;transform:rotate(45deg);margin:-3px 0 0 2px}
+.acm{position:absolute;z-index:15;top:calc(100% + 4px);left:0;min-width:210px;background:#fff;border:1px solid var(--line);border-radius:10px;box-shadow:0 8px 24px rgba(27,35,37,.2);padding:4px}.acm a{display:block;padding:11px 12px;border-radius:8px;color:var(--ink);font:600 14px Inter;text-decoration:none;white-space:nowrap}.acm a:hover,.acm a:focus-visible{background:var(--chip);outline:none}
+.req .acal{display:inline-block;vertical-align:middle}.req .acal>summary{padding:3px 9px;font-size:13px}
 .menu{position:absolute;z-index:20;top:calc(100% + 4px);left:0;min-width:100%;width:max-content;max-width:min(320px,90vw);max-height:340px;overflow:auto;background:var(--chip);border:1px solid var(--line);border-radius:10px;box-shadow:0 8px 24px rgba(27,35,37,.16);padding:6px}
 .opt{display:flex;gap:9px;align-items:center;padding:8px 8px;border-radius:6px;font-size:14px;cursor:pointer}
 .opt:hover{background:var(--soft)}
@@ -194,15 +197,24 @@ document.addEventListener('change',ev=>{const t=ev.target.closest&&ev.target.clo
   if(t.dataset.cut==='sex')cutSex=t.value;else cutAg=t.value;
   document.querySelectorAll('details.cuts[open]').forEach(d=>d.querySelector('.cutbody').innerHTML=cutHTML(d.dataset.id))});
 const isCaptyn=u=>{try{return /(^|\.)captyn\.com$/i.test(new URL(u).hostname)}catch(x){return false}};
+function icsData(q){
+  const dt=q.get('dates')||'',[a,b]=dt.split('/'),e=x=>String(x||'').replace(/\\/g,'\\\\').replace(/;/g,'\\;').replace(/,/g,'\\,').replace(/\r?\n/g,'\\n');
+  const L=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//NSEA Swim//Events//EN','BEGIN:VEVENT','UID:'+a+'-'+(q.get('text')||'').replace(/[^a-z0-9]+/gi,'-').slice(0,40)+'@nseaswimteam.com','DTSTAMP:'+new Date().toISOString().replace(/[-:]/g,'').replace(/\.\d+/,''),'DTSTART;VALUE=DATE:'+a,'DTEND;VALUE=DATE:'+(b||a),'SUMMARY:'+e(q.get('text')),'TRANSP:TRANSPARENT'];
+  if((q.get('details')||'').trim())L.push('DESCRIPTION:'+e(q.get('details').trim()));if(q.get('location'))L.push('LOCATION:'+e(q.get('location')));
+  L.push('END:VEVENT','END:VCALENDAR');return 'data:text/calendar;charset=utf-8,'+encodeURIComponent(L.join('\r\n')+'\r\n')}
+function addCal(gurl,label){
+  if(!gurl)return '';let q;try{q=new URL(gurl).searchParams}catch(x){return ''}
+  const fn=(q.get('text')||'event').replace(/[^a-z0-9]+/gi,'-').replace(/^-|-$/g,'').slice(0,50)||'event';
+  return `<details class="acal"><summary class="btn">${esc(label)}</summary><div class="acm"><a href="${gurl}" target="_blank" rel="noopener">Google Calendar</a><a href="${icsData(q)}" download="${esc(fn)}.ics">Apple / Outlook (.ics file)</a></div></details>`}
 function reqs(e){
   let h='';
   if(e.signupDeadline){const n=daysUntil(e.signupDeadline);
     const flag=n<0?'<span class="b">Closed</span>':n===0?'<span class="b soon">Due today</span>':n<=7?`<span class="b soon">${n} day${n>1?'s':''} left</span>`:'';
-    h+=`<div class="req"><span class="rk">Sign up by</span><b${n<0?' class="done"':''}>${esc(fmtDay(e.signupDeadline))}</b> ${flag} ${e.signupLink?`<a href="${esc(e.signupLink)}" target="_blank" rel="noopener">${isCaptyn(e.signupLink)?'Enter in Captyn':'Sign up'}</a>`:'<span class="meta">(link coming)</span>'}${e.signupAddToGoogle&&n>=0?` &middot; <a href="${e.signupAddToGoogle}" target="_blank" rel="noopener">Add deadline to calendar</a>`:''}</div>
+    h+=`<div class="req"><span class="rk">Sign up by</span><b${n<0?' class="done"':''}>${esc(fmtDay(e.signupDeadline))}</b> ${flag} ${e.signupLink?`<a href="${esc(e.signupLink)}" target="_blank" rel="noopener">${isCaptyn(e.signupLink)?'Enter in Captyn':'Sign up'}</a>`:'<span class="meta">(link coming)</span>'}${e.signupAddToGoogle&&n>=0?` &middot; ${addCal(e.signupAddToGoogle,'Add deadline to calendar')}`:''}</div>
     ${e.signupLink&&isCaptyn(e.signupLink)&&e.type==='meet'?`<div class="req"><span class="rk">In Captyn</span>Entries, billing and the meet packet${e.infoStatus==='waiting'?' <span class="meta">(packet not posted yet)</span>':''}.</div>`:''}`}
   if(e.volunteerDeadline||e.volunteerLink){const n=e.volunteerDeadline?daysUntil(e.volunteerDeadline):null;
     const flag=n==null?'':n<0?'<span class="b">Closed</span>':n===0?'<span class="b soon">Due today</span>':n<=7?`<span class="b soon">${n} day${n>1?'s':''} left</span>`:'';
-    h+=`<div class="req"><span class="rk">Volunteer${e.volunteerDeadline?' by':''}</span>${e.volunteerDeadline?`<b${n<0?' class="done"':''}>${esc(fmtDay(e.volunteerDeadline))}</b> ${flag} `:''}${e.volunteerLink&&(n==null||n>=0)?`<a href="${esc(e.volunteerLink)}" target="_blank" rel="noopener">Volunteer sign-up</a>`:(e.volunteerLink?'':'<span class="meta">(link coming)</span>')}${e.volunteerAddToGoogle&&n>=0?` &middot; <a href="${e.volunteerAddToGoogle}" target="_blank" rel="noopener">Add deadline to calendar</a>`:''}</div>`}
+    h+=`<div class="req"><span class="rk">Volunteer${e.volunteerDeadline?' by':''}</span>${e.volunteerDeadline?`<b${n<0?' class="done"':''}>${esc(fmtDay(e.volunteerDeadline))}</b> ${flag} `:''}${e.volunteerLink&&(n==null||n>=0)?`<a href="${esc(e.volunteerLink)}" target="_blank" rel="noopener">Volunteer sign-up</a>`:(e.volunteerLink?'':'<span class="meta">(link coming)</span>')}${e.volunteerAddToGoogle&&n>=0?` &middot; ${addCal(e.volunteerAddToGoogle,'Add deadline to calendar')}`:''}</div>`}
   if(e.hasSelection)h+=`<div class="req"><span class="rk">Selection process</span>${e.selectionNotes?esc(e.selectionNotes)+' ':''}${e.selectionLink?`<a href="${esc(e.selectionLink)}" target="_blank" rel="noopener">How selection works</a>`:'<span class="meta">(details coming)</span>'}</div>`;
   if(e.hasStandards){const has=expand(e.standards.map(x=>x.name)).some(n=>TIMES_HAVE[n]);
     h+=`<div class="req"><span class="rk">Qualifying standards</span>${e.standards.map(s=>`<span class="b">${esc(s.name)}</span>`).join('')}${e.standards.length?'':'<span class="meta">see meet info</span> '}${e.toolUrl?`<a href="${esc(e.toolUrl)}" target="_blank" rel="noopener">Check my time</a>`:''}${e.standardsLink?`${e.toolUrl?' &middot; ':''}<a href="${esc(e.standardsLink)}" target="_blank" rel="noopener">Meet standards</a>`:''}
@@ -219,7 +231,7 @@ function card(e){
   ${loc}${e.description?`<div class="meta">${esc(e.description)}</div>`:''}
   ${reqs(e)}
   ${e.tags.length?`<div class="tags">${e.tags.map(t=>'#'+esc(t)).join(' ')}</div>`:''}
-  <div class="acts">${e.addToGoogle?`<a class="btn" href="${e.addToGoogle}" target="_blank" rel="noopener">Add to Google Calendar</a>`:''}${e.link?`<a class="btn" href="${esc(e.link)}" target="_blank" rel="noopener">Details</a>`:''}</div>
+  <div class="acts">${addCal(e.addToGoogle,'Add to calendar')}${e.link?`<a class="btn" href="${esc(e.link)}" target="_blank" rel="noopener">Details</a>`:''}</div>
   ${ADMIN&&e.needsReview?`<div class="rev"><b>Review:</b> ${esc(e.reviewNote)}</div>`:''}
   </div></article>`;
 }
@@ -260,9 +272,9 @@ document.addEventListener('click',ev=>{
   const rm=ev.target.closest('[data-rm]');
   if(rm){if(rm.dataset.rm==='month'){S.month='';$('#month').value=''}else S[rm.dataset.rm].delete(rm.dataset.v);render();return}
   if(ev.target.closest('.menu .done')){ev.target.closest('details').open=false;return}
-  const d=ev.target.closest('details.dd');
-  document.querySelectorAll('details.dd[open]').forEach(x=>{if(x!==d)x.open=false})});
-document.addEventListener('keydown',ev=>{if(ev.key==='Escape')document.querySelectorAll('details.dd[open]').forEach(x=>{x.open=false;x.querySelector('summary').focus()})});
+  const d=ev.target.closest('details.dd,details.acal');
+  document.querySelectorAll('details.dd[open],details.acal[open]').forEach(x=>{if(x!==d)x.open=false})});
+document.addEventListener('keydown',ev=>{if(ev.key==='Escape')document.querySelectorAll('details.dd[open],details.acal[open]').forEach(x=>{x.open=false;x.querySelector('summary').focus()})});
 $('#q').addEventListener('input',e=>{S.q=e.target.value.trim();render()});
 $('#month').addEventListener('change',e=>{S.month=e.target.value;render()});
 $('#past').addEventListener('change',e=>{S.past=e.target.checked;render()});
