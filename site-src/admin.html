@@ -65,6 +65,7 @@ code{font-family:var(--mono);font-size:12px;background:#eef2f2;padding:1px 5px;b
   <div id="connmsg" role="status"></div>
 </div>
 
+<div id="fatal" role="alert"></div>
 <div id="app" class="hide">
   <div class="tabs" role="tablist">
     <button class="tab" role="tab" id="t-attn" aria-selected="false">Needs attention (<span id="n-at">0</span>)</button>
@@ -514,13 +515,22 @@ async function connect(){
   const m=$('#connmsg');G.repo=$('#repo').value.trim();G.branch=$('#branch').value.trim()||'main';G.token=$('#token').value.trim();
   if(!/^[\w.-]+\/[\w.-]+$/.test(G.repo)||!G.token){m.innerHTML='<div class="msg err">Enter the repository (owner/name) and your token.</div>';return}
   m.innerHTML='<div class="msg ok">Connecting...</div>';
-  try{const r=await (await gh('')).json();
+  const work=async()=>{const r=await (await gh('')).json();
     if(r.permissions&&!r.permissions.push)throw new Error('This token can read but not write to the repository.');
-    await load();
+    await load()};
+  const timeout=ms=>new Promise((_,rej)=>setTimeout(()=>rej(new Error('Timed out waiting for GitHub')),ms));
+  try{
+    for(let i=0;;i++){
+      try{await Promise.race([work(),timeout(20000)]);break}
+      catch(e){if(i>=2||!/GitHub 5\d\d|Timed out|Failed to fetch|NetworkError/.test(e.message))throw e;
+        m.innerHTML='<div class="msg ok">GitHub is slow to answer. Trying again ('+(i+2)+' of 3)...</div>';
+        await new Promise(r=>setTimeout(r,1500*(i+1)))}}
+    $('#fatal').innerHTML='';
     if($('#remember').checked){lsSet('nsea_admin_token',G.token);lsSet('nsea_admin_repo',G.repo)}else lsSet('nsea_admin_token',null);
     m.innerHTML='<div class="msg ok">Connected to '+esc(G.repo)+' ('+esc(G.branch)+').</div>';
     $('#app').classList.remove('hide');$('#disconnect').classList.remove('hide');$('#connect').classList.add('hide');render();
-  }catch(err){m.innerHTML='<div class="msg err" role="alert">'+esc(err.message)+(/401|403/.test(err.message)?' Check that the token is valid, not expired, and has Contents read/write on this repository.':'')+'</div>'}}
+  }catch(err){$('#fatal').innerHTML='<div class="msg err"><b>Could not load the events editor.</b> '+esc(err.message)+'. This is usually a brief GitHub hiccup. <button class="btn" type="button" id="retry">Try again</button></div>';$('#retry').onclick=connect;
+    m.innerHTML='<div class="msg err" role="alert">'+esc(err.message)+(/401|403/.test(err.message)?' Check that the token is valid, not expired, and has Contents read/write on this repository.':'')+'</div>'}}
 $('#connect').addEventListener('click',connect);
 $('#disconnect').addEventListener('click',()=>{if(dirty()&&!confirm('You have unsaved draft changes. Disconnect and lose them?'))return;lsSet('nsea_admin_token',null);G.token='';S.events=[];S.venues=[];$('#token').value='';$('#app').classList.add('hide');$('#disconnect').classList.add('hide');$('#connect').classList.remove('hide');$('#connmsg').innerHTML=''});
 </script>
