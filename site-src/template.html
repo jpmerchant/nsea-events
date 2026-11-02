@@ -207,12 +207,17 @@ function cutTable(sec){
   const head=`<tr><th class="cw" colspan="${k}">Women</th><th class="ce"${multi?' rowspan="2"':''}>Event</th><th class="cm" colspan="${k}">Men</th></tr>`+(multi?`<tr>${sec.cols.map(c=>`<th class="cw cs">${esc(c.n)}</th>`).join('')}${sec.cols.map(c=>`<th class="cm cs">${esc(c.n)}</th>`).join('')}</tr>`:'');
   const body=evs.map(v=>`<tr>${sec.cols.map(c=>`<td class="cw">${cell('W',c,v)}</td>`).join('')}<th class="ce">${esc(v)}</th>${sec.cols.map(c=>`<td class="cm">${cell('M',c,v)}</td>`).join('')}</tr>`).join('');
   return (sec.label?`<h4 class="cuthead">${esc(sec.label)}</h4>`:'')+`<div class="cutwrap"><table class="cut cut2"><thead>${head}</thead><tbody>${body}</tbody></table></div>`}
-function cutHTML(id){
+function cutHTML(id,sel){
   const e=E.find(x=>x.id===id),names=expand(e.standards.map(x=>x.name)).filter(n=>TIMES_HAVE[n]);
   const secs=cutSections(names);
   if(!secs.length)return '<p class="meta">No cut times on file. See the meet standards link.</p>';
-  return secs.map(cutTable).join('')+'<p class="meta">SCY. Times at or under the cut qualify. Standards can change; confirm in the meet info.</p>'}
-document.addEventListener('toggle',ev=>{const d=ev.target;if(d.matches&&d.matches('details.cuts')&&d.open)d.querySelector('.cutbody').innerHTML=cutHTML(d.dataset.id)},true);
+  // age groupings present (more than one table): offer a picker, with Show all as the default
+  const labels=secs.map(x=>x.label);
+  const pick=labels.includes(sel)?sel:'all';
+  const picker=secs.length>1?`<div class="cutsel"><label>Age group <select data-cut="ag"><option value="all"${pick==='all'?' selected':''}>Show all</option>${labels.map(l=>`<option value="${esc(l)}"${pick===l?' selected':''}>${esc(l)}</option>`).join('')}</select></label></div>`:'';
+  return picker+secs.filter(x=>pick==='all'||x.label===pick).map(cutTable).join('')+'<p class="meta">SCY. Times at or under the cut qualify. Standards can change; confirm in the meet info.</p>'}
+document.addEventListener('toggle',ev=>{const d=ev.target;if(d.matches&&d.matches('details.cuts')&&d.open)d.querySelector('.cutbody').innerHTML=cutHTML(d.dataset.id,d.dataset.sel)},true);
+document.addEventListener('change',ev=>{const t=ev.target.closest&&ev.target.closest('select[data-cut]');if(!t)return;const d=t.closest('details.cuts');d.dataset.sel=t.value;d.querySelector('.cutbody').innerHTML=cutHTML(d.dataset.id,t.value)});
 const isCaptyn=u=>{try{return /(^|\.)captyn\.com$/i.test(new URL(u).hostname)}catch(x){return false}};
 function icsData(q){
   const dt=q.get('dates')||'',[a,b]=dt.split('/'),e=x=>String(x||'').replace(/\\/g,'\\\\').replace(/;/g,'\\;').replace(/,/g,'\\,').replace(/\r?\n/g,'\\n');
