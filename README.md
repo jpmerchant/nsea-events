@@ -47,7 +47,7 @@ Options on the URL: `?max=3` (1-15 rows), `?days=60` (only deadlines within 60 d
 
 ## Cut times on event cards
 
-`data/standard-times.json` (copied from the standards explorer's `standards.json`) feeds a "Show cut times" panel on each event with qualifying standards: pick Girls/Boys and age group to see a table of cut times for just that event's standards. To refresh after the explorer data changes, replace that file and push. Standards are matched by name, so keep names in `standards.csv` identical to the explorer's.
+`data/standard-times.json` (copied from the standards explorer's `standards.json`) feeds a "Show cut times" panel on each event with qualifying standards. The panel shows Women, Event and Men side by side, with no pickers. Age groups come from the meet's own standards: a name ending in `18&U` or `19&O` gives an "18 & Under" / "19 & Over" table (a bare name like "US Open" next to "US Open 18&U" is treated as the other half); standards with no age split (NC Senior, Sectionals) show one table with no age heading; per-age standards (NC AG, ESSZ AG) get one table per age group. To refresh after the explorer data changes, replace that file and push. Standards are matched by name, so keep names in `standards.csv` identical to the explorer's.
 
 ## Subscribe page
 
