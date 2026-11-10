@@ -92,7 +92,7 @@ let TYPES={};
 const syncTypes=()=>{TYPES=Object.fromEntries(S.types.map(t=>[t.key,t.label]))};
 const STATUS=['Tentative','Confirmed'];
 const INFO={'':'Not set','waiting':'Packet not posted yet (waiting on host)','ready':'Packet posted in Captyn'};
-const EH=["id","title","start","end","precision","month_hint","type","groups","eligibility","venue","status","tags","description","link","needs_review","review_note","signup_deadline","signup_link","has_selection","selection_link","selection_notes","has_standards","standards","standards_link","volunteer_link","volunteer_deadline","info_status"];
+const EH=["id","title","start","end","precision","month_hint","type","groups","eligibility","venue","status","tags","description","link","needs_review","review_note","signup_deadline","signup_link","has_selection","selection_link","selection_notes","has_standards","standards","standards_link","volunteer_link","volunteer_deadline","info_status","has_qual_period","qual_start","qual_end"];
 const SH=["key","name","group","link","notes"];
 const VH=["key","name","city","state","address","map_query","home","verified"];
 const P={files:{events:'data/events.csv',venues:'data/venues.csv',standards:'data/standards.csv',settings:'data/settings.json',types:'data/types.csv',times:'data/standard-times.json'}};
@@ -156,6 +156,11 @@ function validEvent(e,idx){
     if(!/^\d{4}-\d\d-\d\d$/.test(e.end))er.push('End date is required.');
     else if(e.start&&e.end<e.start)er.push('End date is before the start date.');
   }else if(!/^\d{4}-\d\d$/.test(e.month_hint))er.push('Pick the month for an event with no day yet.');
+  if(e.has_qual_period==='yes'){
+    if(!/^\d{4}-\d\d-\d\d$/.test(e.qual_start))er.push('Qualifying period start date is required.');
+    if(!/^\d{4}-\d\d-\d\d$/.test(e.qual_end))er.push('Qualifying period end date is required.');
+    else if(e.qual_start&&e.qual_end<e.qual_start)er.push('Qualifying period ends before it starts.');
+  }
   const g=list(e.groups);if(!g.length)er.push('Pick at least one group (or All).');
   if(g.some(x=>x!=='All'&&!GROUPS.includes(x)))er.push('Unknown group.');
   if(e.venue&&!S.venues.some(v=>v.key===e.venue))er.push('Venue "'+e.venue+'" is not in the Venues tab.');
@@ -256,6 +261,8 @@ function attention(){
     if(e.volunteer_deadline&&!e.volunteer_link)add('Volunteer deadline has no volunteer link.');
     if(e.has_selection==='yes'&&!e.selection_link&&!e.selection_notes)add('Selection process is checked but has no link or notes.');
     if(e.has_standards==='yes'&&!list(e.standards).length)add('Qualifying standards is checked but none are chosen.');
+    if(e.has_qual_period==='yes'&&(!e.qual_start||!e.qual_end))add('Qualifying period is checked but start or end date is missing.');
+    if(e.has_standards==='yes'&&e.type==='meet'&&e.has_qual_period!=='yes'&&day&&e.end>=today)add('Meet has qualifying standards but no qualifying period set (tick the box if there is one).',0);
     if(e.info_status==='waiting'&&(!day||e.start<=in30)&&(!day||e.end>=today))add('Meet packet not posted in Captyn yet'+(day?'':' (date not set)')+'.',day&&e.start<=in30?2:1);
     if(e.type==='meet'&&day&&e.end>=today&&e.start<=in30&&e.info_status!=='ready'&&e.info_status!=='waiting')add('Meet within 30 days is not marked as having its packet posted in Captyn.');
     if(e.needs_review)add('Flagged for review'+(e.review_note?': '+e.review_note:'.'));
@@ -318,7 +325,10 @@ function eventForm(){
    <div class="field"><label class="lbl" for="f-seln">Short summary (optional)</label><input type="text" id="f-seln" data-f="selection_notes" value="${esc(e.selection_notes)}" placeholder="e.g. Invitations go out Mar 1"></div>`:''}
    <div class="field wide"><label><input type="checkbox" data-f="has_standards"${e.has_standards==='yes'?' checked':''}> This event has qualifying standards</label></div>
    ${e.has_standards==='yes'?`<div class="field wide"><span class="lbl">Which standards</span>${S.standards.length?Object.entries(S.standards.reduce((m,s)=>((m[s.group||'Other']=m[s.group||'Other']||[]).push(s),m),{})).map(([g,l])=>`<div class="chk" style="margin:4px 0"><span class="hint" style="min-width:130px">${esc(g)}</span>${l.map(s=>`<label><input type="checkbox" data-s="${esc(s.key)}"${list(e.standards).includes(s.key)?' checked':''}> ${esc(s.name)}</label>`).join('')}</div>`).join(''):'<span class="hint">No standards yet. Add them on the Standards tab.</span>'}</div>
-   <div class="field wide"><label class="lbl" for="f-stl">Link to this meet's qualifying times (optional)</label><input type="url" id="f-stl" data-f="standards_link" value="${esc(e.standards_link)}" placeholder="https://"></div>`:''}
+   <div class="field wide"><label class="lbl" for="f-stl">Link to this meet's qualifying times (optional)</label><input type="url" id="f-stl" data-f="standards_link" value="${esc(e.standards_link)}" placeholder="https://"></div>
+   <div class="field wide"><label><input type="checkbox" data-f="has_qual_period"${e.has_qual_period==='yes'?' checked':''}> This meet has a qualifying period (only swims inside it count)</label></div>
+   ${e.has_qual_period==='yes'?`<div class="field"><label class="lbl" for="f-qs">Qualifying period starts</label><input type="date" id="f-qs" data-f="qual_start" value="${esc(e.qual_start)}"><span class="hint">First day a qualifying swim counts (e.g. 2024-09-01).</span></div>
+   <div class="field"><label class="lbl" for="f-qe">Qualifying period ends</label><input type="date" id="f-qe" data-f="qual_end" value="${esc(e.qual_end)}"><span class="hint">Usually the meet's entry deadline. Swims after this date do not count.</span></div>`:''}`:''}
    <div class="field wide"><label class="lbl" for="f-desc">Notes</label><textarea id="f-desc" data-f="description">${esc(e.description)}</textarea></div>
    <div class="field wide"><label class="lbl" for="f-link">Link (optional)</label><input type="url" id="f-link" data-f="link" value="${esc(e.link)}" placeholder="https://"></div>
    <div class="field wide"><label><input type="checkbox" data-f="needs_review"${e.needs_review?' checked':''}> Needs review (shows only with ?admin on the public page)</label>${e.needs_review?`<input type="text" data-f="review_note" value="${esc(e.review_note)}" placeholder="What needs checking?" aria-label="Review note">`:''}</div>
@@ -417,7 +427,7 @@ function savePanel(){
   <div id="pubmsg" role="status"></div></div>`}
 
 /* ---------- events ---------- */
-const blankEvent=()=>({id:'',title:'',start:'',end:'',precision:'day',month_hint:'',type:'meet',groups:'All',eligibility:'',venue:'',status:'Tentative',tags:'',description:'',link:'',needs_review:'',review_note:'',signup_deadline:'',signup_link:'',has_selection:'',selection_link:'',selection_notes:'',has_standards:'',standards:'',standards_link:'',volunteer_link:'',volunteer_deadline:'',info_status:''});
+const blankEvent=()=>({id:'',title:'',start:'',end:'',precision:'day',month_hint:'',type:'meet',groups:'All',eligibility:'',venue:'',status:'Tentative',tags:'',description:'',link:'',needs_review:'',review_note:'',signup_deadline:'',signup_link:'',has_selection:'',selection_link:'',selection_notes:'',has_standards:'',standards:'',standards_link:'',volunteer_link:'',volunteer_deadline:'',info_status:'',has_qual_period:'',qual_start:'',qual_end:''});
 const blankStandard=()=>({key:'',name:'',group:'',link:'',notes:''});
 const blankVenue=()=>({key:'',name:'',city:'',state:'',address:'',map_query:'',home:'',verified:''});
 document.addEventListener('input',ev=>{
@@ -454,7 +464,8 @@ document.addEventListener('click',async ev=>{
   else if(a==='addtag'){const e=S.edit.e;const t=list(e.tags);if(!t.includes(b.dataset.t))t.push(b.dataset.t);e.tags=t.join(';');render()}
   else if(a==='done-event'){const {e,i,isNew}=S.edit;if(e.precision==='day')e.month_hint='';e.needs_review=e.needs_review?'yes':'';if(!e.needs_review)e.review_note='';
     if(e.has_selection!=='yes'){e.selection_link='';e.selection_notes=''}
-    if(e.has_standards!=='yes'){e.standards='';e.standards_link=''}
+    if(e.has_standards!=='yes'){e.standards='';e.standards_link='';e.has_qual_period=''}
+    if(e.has_qual_period!=='yes'){e.qual_start='';e.qual_end=''}
     const er=validEvent(e,i);if(er.length){S.edit.errors=er;render();window.scrollTo(0,0);return}
     if(isNew)S.events.push(e);else S.events[i]=e;S.edit=null;render()}
   else if(a==='del-event'){if(confirm('Delete "'+S.edit.e.title+'"? You can still discard the draft before publishing.')){S.events.splice(S.edit.i,1);S.edit=null;render()}}
