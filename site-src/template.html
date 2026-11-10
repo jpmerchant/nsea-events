@@ -240,6 +240,7 @@ function reqs(e){
   if(e.hasSelection)h+=`<div class="req"><span class="rk">Selection process</span>${e.selectionNotes?esc(e.selectionNotes)+' ':''}${e.selectionLink?`<a href="${esc(e.selectionLink)}" target="_blank" rel="noopener">How selection works</a>`:'<span class="meta">(details coming)</span>'}</div>`;
   if(e.hasStandards){const has=expand(e.standards.map(x=>x.name)).some(n=>TIMES_HAVE[n]);
     h+=`<div class="req"><span class="rk">Qualifying standards</span>${e.standards.map(s=>`<span class="b">${esc(s.name)}</span>`).join('')}${e.standards.length?'':'<span class="meta">see meet info</span> '}${e.toolUrl?`<a href="${esc(e.toolUrl)}" target="_blank" rel="noopener">Check my time</a>`:''}${e.standardsLink?`${e.toolUrl?' &middot; ':''}<a href="${esc(e.standardsLink)}" target="_blank" rel="noopener">Meet standards</a>`:''}
+    ${e.hasQualPeriod&&e.qualStart&&e.qualEnd?`<div class="meta" style="margin-top:4px">Qualifying period: <b>${esc(fmtDay(e.qualStart))}</b> to <b>${esc(fmtDay(e.qualEnd))}</b>. Only swims in this window count.</div>`:''}
     ${has?`<details class="cuts" data-id="${esc(e.id)}"><summary>Show cut times</summary><div class="cutbody"></div></details>`:''}</div>`}
   return h?`<div class="reqs">${h}</div>`:''}
 function card(e){
