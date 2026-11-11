@@ -28,7 +28,7 @@ const toolUrl=(keys)=>{const u=(settings.standards_tool_url||'').trim();if(!u||!
 const isUrl=s=>!s||/^https?:\/\//.test(s);
 // ---- change visibility: diff data/events.csv across recent commits (needs full git history; skipped quietly if unavailable)
 const RECENT_DAYS=7;
-const FIELD_LABEL={info_status:'info status',title:'name',start:'dates',end:'dates',precision:'dates',month_hint:'dates',type:'type',groups:'groups',eligibility:'eligibility',venue:'venue',status:'status',signup_deadline:'sign-up deadline',signup_link:'sign-up link',has_selection:'selection process',selection_link:'selection process',selection_notes:'selection process',has_standards:'standards',standards:'standards',standards_link:'standards',volunteer_link:'volunteer link',volunteer_deadline:'volunteer deadline',description:'details',link:'details link',has_qual_period:'qualifying period',qual_start:'qualifying period',qual_end:'qualifying period'};
+const FIELD_LABEL={info_status:'info status',title:'name',start:'dates',end:'dates',precision:'dates',month_hint:'dates',type:'type',groups:'groups',eligibility:'eligibility',venue:'venue',status:'status',signup_deadline:'sign-up deadline',signup_link:'sign-up link',has_selection:'selection process',selection_link:'selection process',selection_notes:'selection process',has_standards:'standards',standards:'standards',standards_link:'standards',volunteer_link:'volunteer link',volunteer_deadline:'volunteer deadline',description:'details',link:'details link',qual_basis:'qualifying period',qual_start:'qualifying period',qual_end:'qualifying period',bonus_standards:'standards'};
 const changeInfo={};
 let recentChanges=[];
 try{
@@ -69,8 +69,10 @@ const events=rows.map(r=>{
   for(const f of ['signup_link','selection_link','standards_link','link'])if(!isUrl(r[f]))errors.push(`${r.id}: ${f} must start with http(s)`);
   if(r.volunteer_deadline&&!/^\d{4}-\d\d-\d\d$/.test(r.volunteer_deadline))errors.push(`${r.id}: bad volunteer_deadline`);
   for(const f of ['qual_start','qual_end'])if(r[f]&&!/^\d{4}-\d\d-\d\d$/.test(r[f]))errors.push(`${r.id}: bad ${f}`);
-  if(r.has_qual_period==='yes'&&(!r.qual_start||!r.qual_end))errors.push(`${r.id}: qualifying period is checked but start or end is missing`);
-  if(r.qual_start&&r.qual_end&&r.qual_end<r.qual_start)errors.push(`${r.id}: qualifying period ends before it starts`);
+  if(r.qual_basis&&!['since','best'].includes(r.qual_basis))errors.push(`${r.id}: qual_basis must be "since" or "best"`);
+  if(r.qual_basis==='since'&&!r.qual_start)errors.push(`${r.id}: "times since" is chosen but the date is missing`);
+  if(r.qual_basis==='since'&&r.qual_start&&r.qual_end&&r.qual_end<r.qual_start)errors.push(`${r.id}: team entry deadline is before the "times since" date`);
+  for(const k of list(r.bonus_standards))if(!sKeys.includes(k))errors.push(`${r.id}: bonus standard "${k}" is not one of the meet's standards`);
   if(r.qual_end&&r.start&&r.qual_end>r.start)warnings.push(`${r.id}: qualifying period ends after the meet starts`);
   if(!isUrl(r.volunteer_link))errors.push(`${r.id}: volunteer_link must start with http(s)`);
   if(r.volunteer_deadline&&r.start&&r.volunteer_deadline>r.start)warnings.push(`${r.id}: volunteer deadline is after the event starts`);
@@ -83,8 +85,8 @@ const events=rows.map(r=>{
     signupDeadline:r.signup_deadline||null,signupLink:r.signup_link,volunteerDeadline:r.volunteer_deadline||null,volunteerLink:r.volunteer_link||'',
     hasSelection:r.has_selection==='yes',selectionLink:r.selection_link,selectionNotes:r.selection_notes,
     hasStandards:r.has_standards==='yes',standardsLink:r.standards_link,
-    hasQualPeriod:r.has_qual_period==='yes',qualStart:r.qual_start||null,qualEnd:r.qual_end||null,
-    standards:sKeys.filter(k=>stdByKey[k]).map(k=>({key:k,name:stdByKey[k].name,link:stdByKey[k].link})),
+    qualBasis:r.qual_basis||null,qualStart:r.qual_start||null,qualEnd:r.qual_end||null,
+    standards:sKeys.filter(k=>stdByKey[k]).map(k=>({key:k,name:stdByKey[k].name,link:stdByKey[k].link,bonus:list(r.bonus_standards).includes(k)})),
     toolUrl:r.has_standards==='yes'&&sKeys.length?toolUrl(sKeys):'',
     requires:[r.signup_deadline&&'signup',(r.volunteer_deadline||r.volunteer_link)&&'volunteer',r.has_selection==='yes'&&'selection',r.has_standards==='yes'&&'standards'].filter(Boolean),
     mapGoogle:q?'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(q):'',
