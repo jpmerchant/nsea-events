@@ -29,7 +29,7 @@ const toolUrl=(keys,course)=>{const u=(settings.standards_tool_url||'').trim();i
 const isUrl=s=>!s||/^https?:\/\//.test(s);
 // ---- change visibility: diff data/events.csv across recent commits (needs full git history; skipped quietly if unavailable)
 const RECENT_DAYS=7;
-const FIELD_LABEL={info_status:'info status',title:'name',start:'dates',end:'dates',precision:'dates',month_hint:'dates',type:'type',groups:'groups',eligibility:'eligibility',venue:'venue',status:'status',signup_deadline:'sign-up deadline',signup_link:'sign-up link',has_selection:'selection process',selection_link:'selection process',selection_notes:'selection process',has_standards:'standards',standards:'standards',standards_link:'standards',volunteer_link:'volunteer link',volunteer_deadline:'volunteer deadline',description:'details',link:'details link',qual_basis:'qualifying period',qual_start:'qualifying period',qual_end:'qualifying period',bonus_standards:'standards'};
+const FIELD_LABEL={info_status:'info status',title:'name',start:'dates',end:'dates',precision:'dates',month_hint:'dates',type:'type',groups:'groups',eligibility:'eligibility',venue:'venue',status:'status',signup_deadline:'sign-up deadline',info_only:'info only',tech_suits:'tech suits',tech_suits_ask:'tech suits',signup_link:'sign-up link',has_selection:'selection process',selection_link:'selection process',selection_notes:'selection process',has_standards:'standards',standards:'standards',standards_link:'standards',volunteer_link:'volunteer link',volunteer_deadline:'volunteer deadline',description:'details',link:'details link',qual_basis:'qualifying period',qual_start:'qualifying period',qual_end:'qualifying period',bonus_standards:'standards'};
 const changeInfo={};
 let recentChanges=[];
 try{
@@ -55,7 +55,19 @@ const warnings=[];
 const addDays=(d,n)=>{const x=new Date(d+'T00:00:00Z');x.setUTCDate(x.getUTCDate()+n);return x.toISOString().slice(0,10)};
 const compact=d=>d.replace(/-/g,'');
 const errors=[];
-const events=rows.map(r=>{
+// Info-only events (e.g. high school championships, a US Open we are not entering): listed on the calendar,
+// but no sign-up, volunteer, selection, standards or tech suit details are published, even if filled in.
+const INFO_ONLY_BLANK=['signup_deadline','signup_link','has_selection','selection_link','selection_notes','has_standards','standards','standards_link','volunteer_link','volunteer_deadline','info_status','qual_basis','qual_start','qual_end','bonus_standards','tech_suits','tech_suits_ask'];
+// tech suits: "All" or a list of groups, for allowed and for ask-your-coach
+const techList=(s,id,what)=>{const l=list(s);l.forEach(g=>{if(g!=='All'&&!GROUPS.includes(g))errors.push(`${id}: unknown group ${g} in ${what}`)});return l.includes('All')?['All']:GROUPS.filter(g=>l.includes(g))};
+const events=rows.map(r0=>{
+  const infoOnly=r0.info_only==='yes';
+  const r=infoOnly?{...r0,...Object.fromEntries(INFO_ONLY_BLANK.map(k=>[k,'']))}:r0;
+  const tsAllowed=techList(r.tech_suits,r.id,'tech_suits'),tsAsk=techList(r.tech_suits_ask,r.id,'tech_suits_ask');
+  if(tsAllowed.includes('All')&&tsAsk.length||tsAsk.includes('All')&&tsAllowed.length||tsAllowed.some(g=>tsAsk.includes(g)))errors.push(`${r.id}: a group is listed as both "tech suits allowed" and "ask your coach"`);
+  const tech=tsAllowed.length||tsAsk.length?{allowed:tsAllowed,ask:tsAsk}:null;
+  const gl=l=>l[0]==='All'?'all groups':l.join(', ');
+  const techText=!tech?'':tech.allowed.length?'Tech suits allowed: '+gl(tech.allowed)+(tech.ask.length?'; ask your coach: '+gl(tech.ask):''):'Tech suits: ask your coach ('+gl(tech.ask)+')';
   const v=venues[r.venue]; if(r.venue&&!v)errors.push(`${r.id}: unknown venue ${r.venue}`);
   const groups=list(r.groups); const allGroups=groups.includes('All');
   groups.forEach(g=>{if(g!=='All'&&!GROUPS.includes(g))errors.push(`${r.id}: unknown group ${g}`)});
@@ -83,20 +95,20 @@ const events=rows.map(r=>{
     type:r.type,typeLabel:TYPE_LABEL[r.type],typeColor:TYPE_COLOR[r.type]||'teal',groups:allGroups?['All']:groups,groupsAll:allGroups,eligibility:r.eligibility,
     venue:r.venue||'',venueName:v?v.name:'',venueCity:v?[v.city,v.state].filter(Boolean).join(', '):'',home:v?v.home==='yes':false,
     location:locText,status:r.status||'Tentative',tags:list(r.tags),description:r.description,link:r.link,
-    infoStatus:r.info_status||'',needsReview:!!r.needs_review,reviewNote:r.review_note,
+    infoStatus:r.info_status||'',infoOnly,tech,techText,needsReview:!!r.needs_review,reviewNote:r.review_note,
     signupDeadline:r.signup_deadline||null,signupLink:r.signup_link,volunteerDeadline:r.volunteer_deadline||null,volunteerLink:r.volunteer_link||'',
     hasSelection:r.has_selection==='yes',selectionLink:r.selection_link,selectionNotes:r.selection_notes,
     hasStandards:r.has_standards==='yes',standardsLink:r.standards_link,
     qualBasis:r.qual_basis||null,qualStart:r.qual_start||null,qualEnd:r.qual_end||null,
     standards:sKeys.filter(k=>stdByKey[k]).map(k=>({key:k,name:stdByKey[k].name,link:stdByKey[k].link,bonus:list(r.bonus_standards).includes(k)})),
     course,toolUrl:r.has_standards==='yes'&&sKeys.length?toolUrl(sKeys,course):'',
-    requires:[r.signup_deadline&&'signup',(r.volunteer_deadline||r.volunteer_link)&&'volunteer',r.has_selection==='yes'&&'selection',r.has_standards==='yes'&&'standards'].filter(Boolean),
+    requires:[r.signup_deadline&&'signup',(r.volunteer_deadline||r.volunteer_link)&&'volunteer',r.has_selection==='yes'&&'selection',r.has_standards==='yes'&&'standards',tech&&'techsuit'].filter(Boolean),
     mapGoogle:q?'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(q):'',
     mapApple:q?'https://maps.apple.com/?q='+encodeURIComponent(q):''};
   if(e.precision==='day'){
     e.addToGoogle='https://calendar.google.com/calendar/render?action=TEMPLATE&text='+encodeURIComponent(e.title)
      +`&dates=${compact(e.start)}/${compact(addDays(e.end,1))}`
-     +'&details='+encodeURIComponent([e.eligibility&&('Eligibility: '+e.eligibility),e.signupDeadline&&('Sign up by '+e.signupDeadline+(e.signupLink?': '+e.signupLink:'')),e.hasSelection&&('Selection process'+(e.selectionLink?': '+e.selectionLink:'')),e.volunteerLink&&('Volunteer: '+e.volunteerLink+(e.volunteerDeadline?' (by '+e.volunteerDeadline+')':'')),e.standards.length&&('Qualifying standards: '+e.standards.map(s=>s.name).join(', ')),e.description,e.link].filter(Boolean).join('\n')+'\n\nDates are tentative until confirmed by the team.')
+     +'&details='+encodeURIComponent([e.infoOnly&&'For information only: NSEA is not entering swimmers.',e.eligibility&&('Eligibility: '+e.eligibility),e.signupDeadline&&('Sign up by '+e.signupDeadline+(e.signupLink?': '+e.signupLink:'')),e.hasSelection&&('Selection process'+(e.selectionLink?': '+e.selectionLink:'')),e.volunteerLink&&('Volunteer: '+e.volunteerLink+(e.volunteerDeadline?' (by '+e.volunteerDeadline+')':'')),e.standards.length&&('Qualifying standards: '+e.standards.map(s=>s.name).join(', ')),e.techText,e.description,e.link].filter(Boolean).join('\n')+'\n\nDates are tentative until confirmed by the team.')
      +(locText?'&location='+encodeURIComponent(locText):'');}
   if(e.volunteerDeadline)e.volunteerAddToGoogle='https://calendar.google.com/calendar/render?action=TEMPLATE&text='+encodeURIComponent('Volunteer sign-up deadline: '+e.title)+`&dates=${compact(e.volunteerDeadline)}/${compact(addDays(e.volunteerDeadline,1))}`+'&details='+encodeURIComponent((e.volunteerLink?'Volunteer: '+e.volunteerLink+'\n':'')+'Event: '+e.title);
   if(e.signupDeadline)e.signupAddToGoogle='https://calendar.google.com/calendar/render?action=TEMPLATE&text='+encodeURIComponent('Sign-up deadline: '+e.title)+`&dates=${compact(e.signupDeadline)}/${compact(addDays(e.signupDeadline,1))}`+'&details='+encodeURIComponent((e.signupLink?'Sign up: '+e.signupLink+'\n':'')+'Event: '+e.title);
@@ -114,7 +126,7 @@ function ics(name,evs){
   const L=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//NSEA Swim//Events 2026-27//EN','CALSCALE:GREGORIAN','METHOD:PUBLISH',
    'X-WR-CALNAME:'+esc(name),'X-WR-TIMEZONE:America/New_York','REFRESH-INTERVAL;VALUE=DURATION:PT6H','X-PUBLISHED-TTL:PT6H'];
   for(const e of evs.filter(e=>e.precision==='day')){
-    const desc=[e.eligibility&&'Eligibility: '+e.eligibility,e.signupDeadline&&('Sign up by '+e.signupDeadline+(e.signupLink?': '+e.signupLink:'')),e.hasSelection&&('Selection process'+(e.selectionLink?': '+e.selectionLink:'')),(e.volunteerLink||e.volunteerDeadline)&&('Volunteer'+(e.volunteerDeadline?' by '+e.volunteerDeadline:'')+(e.volunteerLink?': '+e.volunteerLink:'')),e.standards.length&&('Qualifying standards: '+e.standards.map(s=>s.name).join(', ')+(e.standardsLink?' ('+e.standardsLink+')':'')),'Groups: '+(e.groupsAll?'All groups':e.groups.join(', ')),e.description,e.link&&'More: '+e.link,
+    const desc=[e.infoOnly&&'For information only: NSEA is not entering swimmers.',e.eligibility&&'Eligibility: '+e.eligibility,e.signupDeadline&&('Sign up by '+e.signupDeadline+(e.signupLink?': '+e.signupLink:'')),e.hasSelection&&('Selection process'+(e.selectionLink?': '+e.selectionLink:'')),(e.volunteerLink||e.volunteerDeadline)&&('Volunteer'+(e.volunteerDeadline?' by '+e.volunteerDeadline:'')+(e.volunteerLink?': '+e.volunteerLink:'')),e.standards.length&&('Qualifying standards: '+e.standards.map(s=>s.name).join(', ')+(e.standardsLink?' ('+e.standardsLink+')':'')),e.techText,'Groups: '+(e.groupsAll?'All groups':e.groups.join(', ')),e.description,e.link&&'More: '+e.link,
       e.status==='Tentative'?'Dates are tentative and subject to change.':''].filter(Boolean).join('\n');
     L.push('BEGIN:VEVENT','UID:'+e.id+'@nseaswimteam.com','DTSTAMP:'+stamp,
       'DTSTART;VALUE=DATE:'+compact(e.start),'DTEND;VALUE=DATE:'+compact(addDays(e.end,1)),

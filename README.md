@@ -22,6 +22,14 @@ Each event can have any combination of: a sign-up deadline (+ link), a volunteer
 - Standards live in `data/standards.csv`. Use the same names as the standards explorer. Set the explorer's page address on the Standards tab (`data/settings.json`); events then link to it as `?std=Name1|Name2`. The explorer needs a small update to read `std` and preselect those standards.
 - The public page has a "Requires" filter for these three.
 
+## Info-only events
+
+Tick "For information only: NSEA is not entering swimmers" on an event (column `info_only` = `yes`) for meets families should know about but we are not entering, such as the High School Championships or a US Open. The event stays on the page and in every feed, with an "Info only" badge and a one-line note. Nothing else about entering is published: no sign-up or volunteer deadline (not on the card, not in the feeds, not in the widget), no Captyn button, selection, standards, cut times or tech suits. Anything already filled in is kept in the data, just hidden, so unticking brings it back. Needs attention skips the sign-up and packet checks for these events.
+
+## Tech suits
+
+Each event has two rows of group checkboxes (columns `tech_suits` and `tech_suits_ask`, `;`-separated groups or `All`): groups allowed to wear tech suits, and groups that should ask their coach. A group can be in only one row. The card shows a "Tech suits" line with green (allowed) and coral (ask your coach) group chips, and a "No tech suits" note for any of the event's groups left in neither row. Events with any group allowed also get a "Tech suits" badge. The "Requires" filter has a "Tech suits allowed / ask coach" option, and the line is added to the calendar feed description.
+
 ## Home page deadlines widget
 `/widget/` shows the next 5 upcoming deadlines (sign-up deadlines and deadline-type events) with days left and Sign up buttons. It updates itself from the same data. Embed it in a BUILD Custom HTML block:
 
