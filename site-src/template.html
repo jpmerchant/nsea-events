@@ -178,10 +178,10 @@ function match(e){
 const DOW=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 function fmtDay(s){const [y,m,d]=s.split('-').map(Number);return DOW[new Date(Date.UTC(y,m-1,d)).getUTCDay()]+' '+MON[m-1]+' '+d+', '+y}
 function daysUntil(s){const [y,m,d]=s.split('-').map(Number),[ty,tm,td]=todayStr.split('-').map(Number);return Math.round((Date.UTC(y,m-1,d)-Date.UTC(ty,tm-1,td))/864e5)}
-const TIMES=DATA.times||{},TIMES_HAVE={},SG=DATA.stdGroups||{};
+const TBY={SCY:DATA.times||{},LCM:DATA.timesLCM||{}},HAVE={SCY:{},LCM:{}},TIMES_HAVE={},SG=DATA.stdGroups||{};let TIMES=TBY.SCY;
 const expand=a=>a.flatMap(n=>SG[n]||[n]);
-for(const sx in TIMES)for(const ag in TIMES[sx])for(const ev in TIMES[sx][ag])for(const n in TIMES[sx][ag][ev])TIMES_HAVE[n]=1;
-const EVORDER=['50 FR','100 FR','200 FR','500 FR','1000 FR','1650 FR','50 BK','100 BK','200 BK','50 BR','100 BR','200 BR','50 FL','100 FL','200 FL','100 IM','200 IM','400 IM'];
+for(const c in TBY)for(const sx in TBY[c])for(const ag in TBY[c][sx])for(const ev in TBY[c][sx][ag])for(const n in TBY[c][sx][ag][ev]){TIMES_HAVE[n]=1;HAVE[c][n]=1}
+const EVORDER=['50 FR','100 FR','200 FR','400 FR','500 FR','800 FR','1000 FR','1500 FR','1650 FR','50 BK','100 BK','200 BK','50 BR','100 BR','200 BR','50 FL','100 FL','200 FL','100 IM','200 IM','400 IM'];
 const AGS=['10&U','11-12','13-14','15-16','17-18','Open'];
 // age-group label from a standard's own name ("US Open 18&U" -> "18 & Under"); null when the standard has none (NC Senior)
 const stdAgeLabel=n=>{const m=/(\d+)\s*&\s*([UO])\b/i.exec(n);return m?m[1]+(m[2].toUpperCase()==='U'?' & Under':' & Over'):null};
@@ -207,17 +207,24 @@ function cutTable(sec){
   const head=`<tr><th class="cw" colspan="${k}">Women</th><th class="ce"${multi?' rowspan="2"':''}>Event</th><th class="cm" colspan="${k}">Men</th></tr>`+(multi?`<tr>${sec.cols.map(c=>`<th class="cw cs">${esc(c.n)}</th>`).join('')}${sec.cols.map(c=>`<th class="cm cs">${esc(c.n)}</th>`).join('')}</tr>`:'');
   const body=evs.map(v=>`<tr>${sec.cols.map(c=>`<td class="cw">${cell('W',c,v)}</td>`).join('')}<th class="ce">${esc(v)}</th>${sec.cols.map(c=>`<td class="cm">${cell('M',c,v)}</td>`).join('')}</tr>`).join('');
   return (sec.label?`<h4 class="cuthead">${esc(sec.label)}</h4>`:'')+`<div class="cutwrap"><table class="cut cut2"><thead>${head}</thead><tbody>${body}</tbody></table></div>`}
-function cutHTML(id,sel){
-  const e=E.find(x=>x.id===id),names=expand(e.standards.map(x=>x.name)).filter(n=>TIMES_HAVE[n]);
+function cutHTML(id,sel,crs){
+  const e=E.find(x=>x.id===id),all=expand(e.standards.map(x=>x.name));
+  // course: the meet's own course first; offer the other course when the meet publishes cuts for both (SCY swims count against an LCM meet's SCY cuts)
+  const own=e.course||'SCY',other=own==='LCM'?'SCY':'LCM',SC=DATA.singleCourse||[];
+  const okIn=c=>n=>HAVE[c][n]&&(c===own||!SC.includes(n));
+  const courses=[own,other].filter(c=>all.some(okIn(c)));
+  const course=courses.includes(crs)?crs:(courses[0]||own);TIMES=TBY[course];
+  const names=all.filter(okIn(course));
+  const cpick=courses.length>1?`<label>Course <select data-cut="course">${courses.map(c=>`<option value="${c}"${c===course?' selected':''}>${c==='LCM'?'Long course (LCM)':'Short course (SCY)'}</option>`).join('')}</select></label>`:'';
   const secs=cutSections(names);
   if(!secs.length)return '<p class="meta">No cut times on file. See the meet standards link.</p>';
   // age groupings present (more than one table): offer a picker, with Show all as the default
   const labels=secs.map(x=>x.label);
   const pick=labels.includes(sel)?sel:'all';
-  const picker=secs.length>1?`<div class="cutsel"><label>Age group <select data-cut="ag"><option value="all"${pick==='all'?' selected':''}>Show all</option>${labels.map(l=>`<option value="${esc(l)}"${pick===l?' selected':''}>${esc(l)}</option>`).join('')}</select></label></div>`:'';
-  return picker+secs.filter(x=>pick==='all'||x.label===pick).map(cutTable).join('')+'<p class="meta">SCY. Times at or under the cut qualify. Standards can change; confirm in the meet info.</p>'}
-document.addEventListener('toggle',ev=>{const d=ev.target;if(d.matches&&d.matches('details.cuts')&&d.open)d.querySelector('.cutbody').innerHTML=cutHTML(d.dataset.id,d.dataset.sel)},true);
-document.addEventListener('change',ev=>{const t=ev.target.closest&&ev.target.closest('select[data-cut]');if(!t)return;const d=t.closest('details.cuts');d.dataset.sel=t.value;d.querySelector('.cutbody').innerHTML=cutHTML(d.dataset.id,t.value)});
+  const picker=(secs.length>1||cpick)?`<div class="cutsel">${cpick}${secs.length>1?`<label>Age group <select data-cut="ag"><option value="all"${pick==='all'?' selected':''}>Show all</option>${labels.map(l=>`<option value="${esc(l)}"${pick===l?' selected':''}>${esc(l)}</option>`).join('')}</select></label>`:''}</div>`:'';
+  return picker+secs.filter(x=>pick==='all'||x.label===pick).map(cutTable).join('')+`<p class="meta">${course==='LCM'?'Long course meters':'Short course yards'}. Times at or under the cut qualify. Standards can change; confirm in the meet info.</p>`}
+document.addEventListener('toggle',ev=>{const d=ev.target;if(d.matches&&d.matches('details.cuts')&&d.open)d.querySelector('.cutbody').innerHTML=cutHTML(d.dataset.id,d.dataset.sel,d.dataset.course)},true);
+document.addEventListener('change',ev=>{const t=ev.target.closest&&ev.target.closest('select[data-cut]');if(!t)return;const d=t.closest('details.cuts');if(t.dataset.cut==='course')d.dataset.course=t.value;else d.dataset.sel=t.value;d.querySelector('.cutbody').innerHTML=cutHTML(d.dataset.id,d.dataset.sel,d.dataset.course)});
 const isCaptyn=u=>{try{return /(^|\.)captyn\.com$/i.test(new URL(u).hostname)}catch(x){return false}};
 function icsData(q){
   const dt=q.get('dates')||'',[a,b]=dt.split('/'),e=x=>String(x||'').replace(/\\/g,'\\\\').replace(/;/g,'\\;').replace(/,/g,'\\,').replace(/\r?\n/g,'\\n');
