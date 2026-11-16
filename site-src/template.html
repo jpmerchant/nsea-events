@@ -71,6 +71,10 @@ details summary{cursor:pointer;font-weight:600;font-size:14px}
 .b.type.c-teal-dark{background:var(--teal-d);border-color:var(--teal-d)}
 .b.type.c-coral{background:var(--coral);border-color:var(--coral)}
 .b.type.c-gray{background:var(--gray);border-color:var(--gray)}
+.b.info{background:#EEF1F3;border-color:var(--gray);color:var(--gray)}
+.b.ts-ok{background:#E6F3F1;border-color:var(--teal);color:var(--teal-d)}
+.b.ts-ask{background:var(--coral-l);border-color:var(--coral);color:#a32a16}
+.reqs.info{border-left-color:var(--gray)}
 .b.tent{background:var(--coral-l);border-color:var(--coral);color:#a32a16}
 .meta{font-size:14px;color:var(--gray)}
 .meta a{color:var(--teal-d);font-weight:600}
@@ -138,7 +142,7 @@ menu($('#f-group'),DATA.groups.map(g=>[g,g]),'group');
 const venues=[...new Map(E.filter(e=>e.venue).map(e=>[e.venue,e])).values()].sort((a,b)=>(b.home-a.home)||a.venueName.localeCompare(b.venueName));
 menu($('#f-loc'),[['__home','Home pool'],['__away','Away / travel'],['-',''],...venues.filter(e=>!e.home&&e.venue!=='TBD').map(e=>[e.venue,e.venue+(e.venueCity&&e.venueCity.split(',')[0]!==e.venue?' - '+e.venueCity:'')])],'loc');
 const tagCount={};E.forEach(e=>e.tags.forEach(t=>tagCount[t]=(tagCount[t]||0)+1));
-menu($('#f-req'),[['signup','Sign-up deadline'],['volunteer','Volunteers needed'],['selection','Selection process'],['standards','Qualifying standards']],'req');
+menu($('#f-req'),[['signup','Sign-up deadline'],['volunteer','Volunteers needed'],['selection','Selection process'],['standards','Qualifying standards'],['techsuit','Tech suits allowed / ask coach']],'req');
 menu($('#f-tag'),Object.keys(tagCount).sort().map(t=>[t,t+' ('+tagCount[t]+')']),'tag');
 const SUM={type:'Type',group:'Group',loc:'Where',req:'Requires',tag:'Tags'};
 function syncUI(){
@@ -235,7 +239,11 @@ function addCal(gurl,label){
   if(!gurl)return '';let q;try{q=new URL(gurl).searchParams}catch(x){return ''}
   const fn=(q.get('text')||'event').replace(/[^a-z0-9]+/gi,'-').replace(/^-|-$/g,'').slice(0,50)||'event';
   return `<details class="acal"><summary class="btn">${esc(label)}</summary><div class="acm"><a href="${gurl}" target="_blank" rel="noopener">Google Calendar</a><a href="${icsData(q)}" download="${esc(fn)}.ics">Apple / Outlook (.ics file)</a></div></details>`}
+function techRow(e){const T=e.tech;if(!T)return '';
+  const chips=(l,cls)=>l.map(g=>`<span class="b${cls}">${g==='All'?'All groups':esc(g)}</span>`).join('');
+  return `<div class="req"><span class="rk">Tech suits</span>${T.allowed.length?`<span class="meta">Allowed:</span> ${chips(T.allowed,' ts-ok')} `:''}${T.ask.length?`<span class="meta">Ask your coach:</span> ${chips(T.ask,' ts-ask')}`:''}${(()=>{if(T.allowed[0]==='All'||T.ask[0]==='All')return '';const left=(e.groupsAll?DATA.groups:e.groups).filter(g=>!T.allowed.includes(g)&&!T.ask.includes(g));return left.length?`<div class="meta" style="margin-top:2px">No tech suits: ${esc(left.join(', '))}.</div>`:''})()}</div>`}
 function reqs(e){
+  if(e.infoOnly)return `<div class="reqs info"><div class="req"><span class="rk">For information</span>NSEA is not entering swimmers in this event. It is listed so families know it is happening.</div></div>`;
   let h='';
   if(e.signupDeadline){const n=daysUntil(e.signupDeadline);
     const flag=n<0?'<span class="b">Closed</span>':n===0?'<span class="b soon">Due today</span>':n<=7?`<span class="b soon">${n} day${n>1?'s':''} left</span>`:'';
@@ -249,6 +257,7 @@ function reqs(e){
     h+=`<div class="req"><span class="rk">Qualifying standards</span>${e.standards.map(s=>`<span class="b">${esc(s.name)}${s.bonus?' (bonus)':''}</span>`).join('')}${e.standards.length?'':'<span class="meta">see meet info</span> '}${e.toolUrl?`<a href="${esc(e.toolUrl)}" target="_blank" rel="noopener">Check my time</a>`:''}${e.standardsLink?`${e.toolUrl?' &middot; ':''}<a href="${esc(e.standardsLink)}" target="_blank" rel="noopener">Meet standards</a>`:''}
     ${e.qualBasis==='since'&&e.qualStart?`<div class="meta" style="margin-top:4px">Times count since <b>${esc(fmtDay(e.qualStart))}</b>${e.qualEnd?`; team entry deadline <b>${esc(fmtDay(e.qualEnd))}</b>`:''}.</div>`:e.qualBasis==='best'?`<div class="meta" style="margin-top:4px">Your best recorded time counts${e.qualEnd?` (team entry deadline <b>${esc(fmtDay(e.qualEnd))}</b>)`:''}.</div>`:''}
     ${has?`<details class="cuts" data-id="${esc(e.id)}"><summary>Show cut times</summary><div class="cutbody"></div></details>`:''}</div>`}
+  h+=techRow(e);
   return h?`<div class="reqs">${h}</div>`:''}
 function card(e){
   const d=fmtDate(e);
@@ -257,7 +266,7 @@ function card(e){
     :(e.venue==='TBD'?'<div class="meta">Location TBD</div>':'');
   return `<article class="ev"><div class="date${d.cls||''}"><b>${esc(d.a)}</b><span>${esc(d.b)}</span></div><div>
   <h3 class="ttl">${esc(e.title)}</h3>
-  <div class="badges"><span class="b type c-${e.typeColor||'teal'}">${esc(e.typeLabel)}</span>${e.change?`<span class="b new" title="${esc((e.change==='new'?'Added ':'Updated ')+e.changedOn+(e.changedWhat&&e.changedWhat.length?': '+e.changedWhat.join(', '):''))}">${e.change==='new'?'New':'Updated'}</span>`:''}${e.status==='Tentative'?'<span class="b tent">Tentative</span>':''}${e.infoStatus==='waiting'?'<span class="b tent" title="Waiting on the host for the meet info">Details pending</span>':''}${e.precision!=='day'?'<span class="b tent">Date TBD</span>':''}<span class="b">${esc(grp)}</span>${e.eligibility?`<span class="b">${esc(e.eligibility)}</span>`:''}</div>
+  <div class="badges"><span class="b type c-${e.typeColor||'teal'}">${esc(e.typeLabel)}</span>${e.infoOnly?'<span class="b info" title="NSEA is not entering swimmers">Info only</span>':''}${e.tech&&e.tech.allowed.length?'<span class="b ts-ok" title="'+esc(e.techText)+'">Tech suits</span>':''}${e.change?`<span class="b new" title="${esc((e.change==='new'?'Added ':'Updated ')+e.changedOn+(e.changedWhat&&e.changedWhat.length?': '+e.changedWhat.join(', '):''))}">${e.change==='new'?'New':'Updated'}</span>`:''}${e.status==='Tentative'?'<span class="b tent">Tentative</span>':''}${e.infoStatus==='waiting'?'<span class="b tent" title="Waiting on the host for the meet info">Details pending</span>':''}${e.precision!=='day'?'<span class="b tent">Date TBD</span>':''}<span class="b">${esc(grp)}</span>${e.eligibility?`<span class="b">${esc(e.eligibility)}</span>`:''}</div>
   ${loc}${e.description?`<div class="meta">${esc(e.description)}</div>`:''}
   ${reqs(e)}
   ${e.tags.length?`<div class="tags">${e.tags.map(t=>'#'+esc(t)).join(' ')}</div>`:''}
@@ -324,7 +333,7 @@ $('#dl').addEventListener('click',()=>{
   const L=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//NSEA Swim//Filtered export//EN','CALSCALE:GREGORIAN','X-WR-CALNAME:NSEA Swim (filtered)'];
   evs.forEach(e=>{L.push('BEGIN:VEVENT','UID:'+e.id+'@nseaswimteam.com','DTSTAMP:'+st,'DTSTART;VALUE=DATE:'+ymd(e.start),'DTEND;VALUE=DATE:'+ymd(nextDay(e.end)),'SUMMARY:'+icsEsc(e.title),'STATUS:'+(e.status==='Tentative'?'TENTATIVE':'CONFIRMED'),'TRANSP:TRANSPARENT');
     if(e.location)L.push('LOCATION:'+icsEsc(e.location));
-    L.push('DESCRIPTION:'+icsEsc([e.eligibility&&'Eligibility: '+e.eligibility,e.description].filter(Boolean).join('\n')),'END:VEVENT')});
+    L.push('DESCRIPTION:'+icsEsc([e.infoOnly&&'For information only: NSEA is not entering swimmers.',e.eligibility&&'Eligibility: '+e.eligibility,e.techText,e.description].filter(Boolean).join('\n')),'END:VEVENT')});
   L.push('END:VCALENDAR');
   const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([L.join('\r\n')+'\r\n'],{type:'text/calendar'}));a.download='nsea-swim-filtered.ics';document.body.appendChild(a);a.click();a.remove();
 });

@@ -92,7 +92,7 @@ let TYPES={};
 const syncTypes=()=>{TYPES=Object.fromEntries(S.types.map(t=>[t.key,t.label]))};
 const STATUS=['Tentative','Confirmed'];
 const INFO={'':'Not set','waiting':'Packet not posted yet (waiting on host)','ready':'Packet posted in Captyn'};
-const EH=["id","title","start","end","precision","month_hint","type","groups","eligibility","venue","status","tags","description","link","needs_review","review_note","signup_deadline","signup_link","has_selection","selection_link","selection_notes","has_standards","standards","standards_link","volunteer_link","volunteer_deadline","info_status","qual_basis","qual_start","qual_end","bonus_standards"];
+const EH=["id","title","start","end","precision","month_hint","type","groups","eligibility","venue","status","tags","description","link","needs_review","review_note","signup_deadline","signup_link","has_selection","selection_link","selection_notes","has_standards","standards","standards_link","volunteer_link","volunteer_deadline","info_status","qual_basis","qual_start","qual_end","bonus_standards","info_only","tech_suits","tech_suits_ask"];
 const SH=["key","name","group","link","notes"];
 const VH=["key","name","city","state","address","map_query","home","verified"];
 const P={files:{events:'data/events.csv',venues:'data/venues.csv',standards:'data/standards.csv',settings:'data/settings.json',types:'data/types.csv',times:'data/standard-times.json'}};
@@ -249,12 +249,12 @@ function attention(){
   const out=[],iso=d=>d.toISOString().slice(0,10),today=iso(new Date()),in30=iso(new Date(Date.now()+30*864e5));
   S.events.forEach((e,i)=>{
     const add=(msg,lvl)=>out.push({i,title:e.title,date:fmtD(e),msg,lvl:lvl||1});
-    const day=e.precision==='day',tent=e.status==='Tentative';
+    const day=e.precision==='day',tent=e.status==='Tentative',io=e.info_only==='yes';
     if(day&&e.end<today&&tent)add('Date has passed but still marked Tentative.');
     if(day&&e.end>=today&&e.start<=in30&&tent)add('Starts within 30 days and still Tentative.',2);
     if(!day&&e.month_hint&&e.month_hint<today.slice(0,7))add('Month has passed and the date was never set.',2);
     if(e.type==='meet'&&!e.venue)add('Meet has no venue.');
-    if(e.type==='meet'&&day&&e.end>=today&&e.start<=in30&&!e.signup_deadline)add('Meet within 30 days has no sign-up deadline.');
+    if(!io&&e.type==='meet'&&day&&e.end>=today&&e.start<=in30&&!e.signup_deadline)add('Meet within 30 days has no sign-up deadline.');
     if(e.signup_deadline&&!e.signup_link)add('Sign-up deadline has no sign-up link.');
     if(e.volunteer_deadline&&!e.volunteer_link)add('Volunteer deadline has no volunteer link.');
     if(e.has_selection==='yes'&&!e.selection_link&&!e.selection_notes)add('Selection process is checked but has no link or notes.');
@@ -263,7 +263,7 @@ function attention(){
     if(e.qual_basis==='since'&&!e.qual_start)add('"Times since" is chosen but the date is missing.');
     if(e.qual_basis&&!e.qual_end&&day&&e.end>=today)add('No team entry deadline set for the qualifying times.',0);
     if(e.info_status==='waiting'&&(!day||e.start<=in30)&&(!day||e.end>=today))add('Meet packet not posted in Captyn yet'+(day?'':' (date not set)')+'.',day&&e.start<=in30?2:1);
-    if(e.type==='meet'&&day&&e.end>=today&&e.start<=in30&&e.info_status!=='ready'&&e.info_status!=='waiting')add('Meet within 30 days is not marked as having its packet posted in Captyn.');
+    if(!io&&e.type==='meet'&&day&&e.end>=today&&e.start<=in30&&e.info_status!=='ready'&&e.info_status!=='waiting')add('Meet within 30 days is not marked as having its packet posted in Captyn.');
     if(e.needs_review)add('Flagged for review'+(e.review_note?': '+e.review_note:'.'));
   });
   S.standards.forEach(s=>{if(!s.link)out.push({std:s.key,title:s.name,date:'Standard',msg:'No official link.',lvl:0})});
@@ -293,9 +293,27 @@ function eventList(){
   const rows=sortedEvents().map(e=>[e,S.events.indexOf(e)]).filter(([e])=>!q||(e.title+' '+e.venue+' '+e.tags+' '+e.type).toLowerCase().includes(q));
   return `<div class="row" style="margin-bottom:10px"><input type="search" id="q" placeholder="Search events" value="${esc(S.q)}" style="flex:1 1 220px;width:auto"><button class="btn primary" data-act="new-event">Add event</button></div>
   <div class="scroll"><table><thead><tr><th>Date</th><th>Event</th><th>Type</th><th>Groups</th><th>Venue</th><th></th></tr></thead><tbody>
-  ${rows.map(([e,i])=>`<tr class="clk" data-act="edit-event" data-i="${i}" tabindex="0"><td>${esc(fmtD(e))}</td><td><b>${esc(e.title)}</b></td><td>${esc(TYPES[e.type]||e.type)}</td><td>${esc(list(e.groups).join(', '))}</td><td>${esc(e.venue)}</td><td>${e.needs_review?'<span class="b warn">review</span> ':''}${e.info_status==='waiting'?'<span class="b warn">packet not posted</span> ':''}${e.info_status==='ready'?'<span class="b">packet posted</span> ':''}${e.status==='Confirmed'?'<span class="b">confirmed</span>':''}</td></tr>`).join('')||'<tr><td colspan="6">No events.</td></tr>'}
+  ${rows.map(([e,i])=>`<tr class="clk" data-act="edit-event" data-i="${i}" tabindex="0"><td>${esc(fmtD(e))}</td><td><b>${esc(e.title)}</b></td><td>${esc(TYPES[e.type]||e.type)}</td><td>${esc(list(e.groups).join(', '))}</td><td>${esc(e.venue)}</td><td>${e.needs_review?'<span class="b warn">review</span> ':''}${e.info_only==='yes'?'<span class="b">info only</span> ':''}${e.tech_suits||e.tech_suits_ask?'<span class="b">tech suits</span> ':''}${e.info_status==='waiting'?'<span class="b warn">packet not posted</span> ':''}${e.info_status==='ready'?'<span class="b">packet posted</span> ':''}${e.status==='Confirmed'?'<span class="b">confirmed</span>':''}</td></tr>`).join('')||'<tr><td colspan="6">No events.</td></tr>'}
   </tbody></table></div>`}
 function opt(vals,sel,lab){return vals.map(v=>`<option value="${esc(v)}"${v===sel?' selected':''}>${esc(lab?lab[v]:v)}</option>`).join('')}
+function reqFields(e){return `
+   <div class="field wide"><h3 style="margin:8px 0 0">Requirements</h3><span class="hint">An event can have a sign-up deadline, volunteer sign-up, a selection process, qualifying standards, or any combination.</span></div>
+   <div class="field"><label class="lbl" for="f-sd">Sign-up deadline</label><input type="date" id="f-sd" data-f="signup_deadline" value="${esc(e.signup_deadline)}"><span class="hint">Also appears in the calendar feeds as its own all-day deadline.</span></div>
+   <div class="field"><label class="lbl" for="f-sl">Sign-up link</label><input type="url" id="f-sl" data-f="signup_link" value="${esc(e.signup_link)}" placeholder="https://"><span class="hint">For meets, paste the link to this meet's page in Captyn. The card then says "Enter in Captyn" and points families there for entries, billing and the packet.</span></div>
+   <div class="field"><label class="lbl" for="f-vd">Volunteer sign-up deadline</label><input type="date" id="f-vd" data-f="volunteer_deadline" value="${esc(e.volunteer_deadline)}"></div>
+   <div class="field"><label class="lbl" for="f-vl">Volunteer sign-up link</label><input type="url" id="f-vl" data-f="volunteer_link" value="${esc(e.volunteer_link)}" placeholder="https://"><span class="hint">Either field alone is fine. Leave both blank if no volunteers are needed.</span></div>
+   <div class="field wide"><label><input type="checkbox" data-f="has_selection"${e.has_selection==='yes'?' checked':''}> This event has a selection process</label></div>
+   ${e.has_selection==='yes'?`<div class="field"><label class="lbl" for="f-sel">Link to the selection process</label><input type="url" id="f-sel" data-f="selection_link" value="${esc(e.selection_link)}" placeholder="https://"></div>
+   <div class="field"><label class="lbl" for="f-seln">Short summary (optional)</label><input type="text" id="f-seln" data-f="selection_notes" value="${esc(e.selection_notes)}" placeholder="e.g. Invitations go out Mar 1"></div>`:''}
+   <div class="field wide"><label><input type="checkbox" data-f="has_standards"${e.has_standards==='yes'?' checked':''}> This event has qualifying standards</label></div>
+   ${e.has_standards==='yes'?`<div class="field wide"><span class="lbl">Which standards</span>${S.standards.length?Object.entries(S.standards.reduce((m,s)=>((m[s.group||'Other']=m[s.group||'Other']||[]).push(s),m),{})).map(([g,l])=>`<div class="chk" style="margin:4px 0"><span class="hint" style="min-width:130px">${esc(g)}</span>${l.map(s=>`<label><input type="checkbox" data-s="${esc(s.key)}"${list(e.standards).includes(s.key)?' checked':''}> ${esc(s.name)}</label>${list(e.standards).includes(s.key)?`<label class="hint" title="A bonus standard only counts for a swimmer who also has a qualifying (non-bonus) cut"><input type="checkbox" data-b="${esc(s.key)}"${list(e.bonus_standards).includes(s.key)?' checked':''}> bonus</label>`:''}`).join('')}</div>`).join(''):'<span class="hint">No standards yet. Add them on the Standards tab.</span>'}</div>
+   <div class="field wide"><label class="lbl" for="f-stl">Link to this meet's qualifying times (optional)</label><input type="url" id="f-stl" data-f="standards_link" value="${esc(e.standards_link)}" placeholder="https://"></div>
+   <div class="field wide"><label class="lbl" for="f-qb">How qualifying times are counted</label><select id="f-qb" data-f="qual_basis"><option value=""${!e.qual_basis?' selected':''}>(not set)</option><option value="since"${e.qual_basis==='since'?' selected':''}>Times since a date (championship meets)</option><option value="best"${e.qual_basis==='best'?' selected':''}>Best recorded time, no since date</option></select></div>
+   ${e.qual_basis==='since'?`<div class="field"><label class="lbl" for="f-qs">Times since</label><input type="date" id="f-qs" data-f="qual_start" value="${esc(e.qual_start)}"><span class="hint">First day a qualifying swim counts (e.g. 2025-09-01).</span></div>`:''}
+   ${e.qual_basis?`<div class="field"><label class="lbl" for="f-qe">Team entry deadline</label><input type="date" id="f-qe" data-f="qual_end" value="${esc(e.qual_end)}"><span class="hint">Swims after this date are too late to count for our entries.</span></div>`:''}`:''}
+   <div class="field wide"><h3 style="margin:8px 0 0">Tech suits</h3><span class="hint">Tick the groups that may wear tech suits, and the groups that should ask their coach first. Leave both rows empty if tech suits are not part of this meet. If some of the meet's groups are left unticked, the card lists them under "No tech suits".</span>
+   ${[['tech_suits','Allowed'],['tech_suits_ask','Ask your coach']].map(([f,lab])=>{const l=list(e[f]);return `<div class="chk" style="margin:4px 0"><span class="hint" style="min-width:130px">${lab}</span><label><input type="checkbox" data-ts="${f}" data-tg="All"${l.includes('All')?' checked':''}> All groups</label>${GROUPS.map(g=>`<label><input type="checkbox" data-ts="${f}" data-tg="${g}"${l.includes(g)?' checked':''}${l.includes('All')?' disabled':''}> ${g}</label>`).join('')}</div>`}).join('')}</div>
+`}
 function eventForm(){
   const {e,i,isNew,errors}=S.edit;const gs=list(e.groups);
   const tags=[...new Set(S.events.flatMap(x=>list(x.tags)))].sort();
@@ -314,20 +332,8 @@ function eventForm(){
    <div class="field wide"><span class="lbl">Groups</span><div class="chk"><label><input type="checkbox" data-g="All"${gs.includes('All')?' checked':''}> All groups</label>${GROUPS.map(g=>`<label><input type="checkbox" data-g="${g}"${gs.includes(g)?' checked':''}${gs.includes('All')?' disabled':''}> ${g}</label>`).join('')}</div></div>
    <div class="field wide"><label class="lbl" for="f-elig">Eligibility</label><input type="text" id="f-elig" data-f="eligibility" value="${esc(e.eligibility)}" placeholder="e.g. Qualified swimmers, 14 &amp; Under"></div>
    <div class="field wide"><label class="lbl" for="f-tags">Tags</label><input type="text" id="f-tags" data-f="tags" data-tags="1" value="${esc(list(e.tags).join(', '))}" placeholder="comma-separated"><div class="chips">${tags.map(t=>`<button type="button" class="chip" data-act="addtag" data-t="${esc(t)}">${esc(t)}</button>`).join('')}</div></div>
-   <div class="field wide"><h3 style="margin:8px 0 0">Requirements</h3><span class="hint">An event can have a sign-up deadline, volunteer sign-up, a selection process, qualifying standards, or any combination.</span></div>
-   <div class="field"><label class="lbl" for="f-sd">Sign-up deadline</label><input type="date" id="f-sd" data-f="signup_deadline" value="${esc(e.signup_deadline)}"><span class="hint">Also appears in the calendar feeds as its own all-day deadline.</span></div>
-   <div class="field"><label class="lbl" for="f-sl">Sign-up link</label><input type="url" id="f-sl" data-f="signup_link" value="${esc(e.signup_link)}" placeholder="https://"><span class="hint">For meets, paste the link to this meet's page in Captyn. The card then says "Enter in Captyn" and points families there for entries, billing and the packet.</span></div>
-   <div class="field"><label class="lbl" for="f-vd">Volunteer sign-up deadline</label><input type="date" id="f-vd" data-f="volunteer_deadline" value="${esc(e.volunteer_deadline)}"></div>
-   <div class="field"><label class="lbl" for="f-vl">Volunteer sign-up link</label><input type="url" id="f-vl" data-f="volunteer_link" value="${esc(e.volunteer_link)}" placeholder="https://"><span class="hint">Either field alone is fine. Leave both blank if no volunteers are needed.</span></div>
-   <div class="field wide"><label><input type="checkbox" data-f="has_selection"${e.has_selection==='yes'?' checked':''}> This event has a selection process</label></div>
-   ${e.has_selection==='yes'?`<div class="field"><label class="lbl" for="f-sel">Link to the selection process</label><input type="url" id="f-sel" data-f="selection_link" value="${esc(e.selection_link)}" placeholder="https://"></div>
-   <div class="field"><label class="lbl" for="f-seln">Short summary (optional)</label><input type="text" id="f-seln" data-f="selection_notes" value="${esc(e.selection_notes)}" placeholder="e.g. Invitations go out Mar 1"></div>`:''}
-   <div class="field wide"><label><input type="checkbox" data-f="has_standards"${e.has_standards==='yes'?' checked':''}> This event has qualifying standards</label></div>
-   ${e.has_standards==='yes'?`<div class="field wide"><span class="lbl">Which standards</span>${S.standards.length?Object.entries(S.standards.reduce((m,s)=>((m[s.group||'Other']=m[s.group||'Other']||[]).push(s),m),{})).map(([g,l])=>`<div class="chk" style="margin:4px 0"><span class="hint" style="min-width:130px">${esc(g)}</span>${l.map(s=>`<label><input type="checkbox" data-s="${esc(s.key)}"${list(e.standards).includes(s.key)?' checked':''}> ${esc(s.name)}</label>${list(e.standards).includes(s.key)?`<label class="hint" title="A bonus standard only counts for a swimmer who also has a qualifying (non-bonus) cut"><input type="checkbox" data-b="${esc(s.key)}"${list(e.bonus_standards).includes(s.key)?' checked':''}> bonus</label>`:''}`).join('')}</div>`).join(''):'<span class="hint">No standards yet. Add them on the Standards tab.</span>'}</div>
-   <div class="field wide"><label class="lbl" for="f-stl">Link to this meet's qualifying times (optional)</label><input type="url" id="f-stl" data-f="standards_link" value="${esc(e.standards_link)}" placeholder="https://"></div>
-   <div class="field wide"><label class="lbl" for="f-qb">How qualifying times are counted</label><select id="f-qb" data-f="qual_basis"><option value=""${!e.qual_basis?' selected':''}>(not set)</option><option value="since"${e.qual_basis==='since'?' selected':''}>Times since a date (championship meets)</option><option value="best"${e.qual_basis==='best'?' selected':''}>Best recorded time, no since date</option></select></div>
-   ${e.qual_basis==='since'?`<div class="field"><label class="lbl" for="f-qs">Times since</label><input type="date" id="f-qs" data-f="qual_start" value="${esc(e.qual_start)}"><span class="hint">First day a qualifying swim counts (e.g. 2025-09-01).</span></div>`:''}
-   ${e.qual_basis?`<div class="field"><label class="lbl" for="f-qe">Team entry deadline</label><input type="date" id="f-qe" data-f="qual_end" value="${esc(e.qual_end)}"><span class="hint">Swims after this date are too late to count for our entries.</span></div>`:''}`:''}
+   <div class="field wide"><label><input type="checkbox" data-f="info_only"${e.info_only==='yes'?' checked':''}> For information only: NSEA is not entering swimmers</label><span class="hint">For meets like the High School Championships or a US Open we are not attending. The event stays on the calendar and in the feeds, marked "Info only", with no sign-up deadline, links, volunteer, selection, standards or tech suit details shown.</span></div>
+   ${e.info_only==='yes'?'':reqFields(e)}
    <div class="field wide"><label class="lbl" for="f-desc">Notes</label><textarea id="f-desc" data-f="description">${esc(e.description)}</textarea></div>
    <div class="field wide"><label class="lbl" for="f-link">Link (optional)</label><input type="url" id="f-link" data-f="link" value="${esc(e.link)}" placeholder="https://"></div>
    <div class="field wide"><label><input type="checkbox" data-f="needs_review"${e.needs_review?' checked':''}> Needs review (shows only with ?admin on the public page)</label>${e.needs_review?`<input type="text" data-f="review_note" value="${esc(e.review_note)}" placeholder="What needs checking?" aria-label="Review note">`:''}</div>
@@ -426,7 +432,7 @@ function savePanel(){
   <div id="pubmsg" role="status"></div></div>`}
 
 /* ---------- events ---------- */
-const blankEvent=()=>({id:'',title:'',start:'',end:'',precision:'day',month_hint:'',type:'meet',groups:'All',eligibility:'',venue:'',status:'Tentative',tags:'',description:'',link:'',needs_review:'',review_note:'',signup_deadline:'',signup_link:'',has_selection:'',selection_link:'',selection_notes:'',has_standards:'',standards:'',standards_link:'',volunteer_link:'',volunteer_deadline:'',info_status:'',qual_basis:'',qual_start:'',qual_end:'',bonus_standards:''});
+const blankEvent=()=>({id:'',title:'',start:'',end:'',precision:'day',month_hint:'',type:'meet',groups:'All',eligibility:'',venue:'',status:'Tentative',tags:'',description:'',link:'',needs_review:'',review_note:'',signup_deadline:'',signup_link:'',has_selection:'',selection_link:'',selection_notes:'',has_standards:'',standards:'',standards_link:'',volunteer_link:'',volunteer_deadline:'',info_status:'',qual_basis:'',qual_start:'',qual_end:'',bonus_standards:'',info_only:'',tech_suits:'',tech_suits_ask:''});
 const blankStandard=()=>({key:'',name:'',group:'',link:'',notes:''});
 const blankVenue=()=>({key:'',name:'',city:'',state:'',address:'',map_query:'',home:'',verified:''});
 document.addEventListener('input',ev=>{
@@ -447,6 +453,11 @@ document.addEventListener('change',async ev=>{
   const t=ev.target;if(!S.edit)return;const e=S.edit.e;
   if(t.dataset.s){const l=list(e.standards);const i=l.indexOf(t.dataset.s);t.checked?(i<0&&l.push(t.dataset.s)):(i>=0&&l.splice(i,1));e.standards=l.join(';');if(!t.checked)e.bonus_standards=list(e.bonus_standards).filter(k=>k!==t.dataset.s).join(';');render();return}
   if(t.dataset.b){const l=list(e.bonus_standards).filter(k=>k!==t.dataset.b);if(t.checked)l.push(t.dataset.b);e.bonus_standards=l.join(';');return}
+  if(t.dataset.ts){const f=t.dataset.ts,o=f==='tech_suits'?'tech_suits_ask':'tech_suits';let g=list(e[f]);
+    if(t.dataset.tg==='All')g=t.checked?['All']:[];else{g=g.filter(x=>x!=='All');t.checked?g.push(t.dataset.tg):g=g.filter(x=>x!==t.dataset.tg)}
+    e[f]=GROUPS.filter(x=>g.includes(x)).concat(g.includes('All')?['All']:[]).join(';');
+    if(t.checked)e[o]=t.dataset.tg==='All'?'':list(e[o]).filter(x=>x!==t.dataset.tg&&x!=='All').join(';');
+    render();return}
   if(t.dataset.g){let g=list(e.groups);
     if(t.dataset.g==='All')g=t.checked?['All']:[];else{g=g.filter(x=>x!=='All');t.checked?g.push(t.dataset.g):g=g.filter(x=>x!==t.dataset.g)}
     e.groups=g.join(';');render();return}
