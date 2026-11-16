@@ -23,8 +23,9 @@ const rows=parseCSV(EVENTS_CSV);
 const standardsList=fs.existsSync('data/standards.csv')?parseCSV(fs.readFileSync('data/standards.csv','utf8')):[];
 const settings=fs.existsSync('data/settings.json')?JSON.parse(fs.readFileSync('data/settings.json','utf8')):{};
 const stdByKey=Object.fromEntries(standardsList.map(s=>[s.key,s]));
-const toolUrl=(keys)=>{const u=(settings.standards_tool_url||'').trim();if(!u||!keys.length)return u;
-  return u+(u.includes('?')?'&':'?')+'std='+encodeURIComponent(keys.map(k=>stdByKey[k].name).join('|'))};
+// course: an event tagged "lcm" is a long course meet; everything else is short course yards
+const toolUrl=(keys,course)=>{const u=(settings.standards_tool_url||'').trim();if(!u||!keys.length)return u;
+  return u+(u.includes('?')?'&':'?')+'std='+encodeURIComponent(keys.map(k=>stdByKey[k].name).join('|'))+(course==='LCM'?'&course=LCM':'')};
 const isUrl=s=>!s||/^https?:\/\//.test(s);
 // ---- change visibility: diff data/events.csv across recent commits (needs full git history; skipped quietly if unavailable)
 const RECENT_DAYS=7;
@@ -63,6 +64,7 @@ const events=rows.map(r=>{
   const q=v&&v.map_query;
   const locText=v?[v.name,v.address||[v.city,v.state].filter(Boolean).join(', ')].filter(Boolean).join(' - '):'';
   const sKeys=list(r.standards);
+  const course=list(r.tags).includes('lcm')?'LCM':'SCY';
   sKeys.forEach(k=>{if(!stdByKey[k])errors.push(`${r.id}: unknown standard ${k}`)});
   if(sKeys.length&&r.has_standards!=='yes')errors.push(`${r.id}: standards listed but has_standards is not checked`);
   if(r.signup_deadline&&!/^\d{4}-\d\d-\d\d$/.test(r.signup_deadline))errors.push(`${r.id}: bad signup_deadline`);
@@ -87,7 +89,7 @@ const events=rows.map(r=>{
     hasStandards:r.has_standards==='yes',standardsLink:r.standards_link,
     qualBasis:r.qual_basis||null,qualStart:r.qual_start||null,qualEnd:r.qual_end||null,
     standards:sKeys.filter(k=>stdByKey[k]).map(k=>({key:k,name:stdByKey[k].name,link:stdByKey[k].link,bonus:list(r.bonus_standards).includes(k)})),
-    toolUrl:r.has_standards==='yes'&&sKeys.length?toolUrl(sKeys):'',
+    course,toolUrl:r.has_standards==='yes'&&sKeys.length?toolUrl(sKeys,course):'',
     requires:[r.signup_deadline&&'signup',(r.volunteer_deadline||r.volunteer_link)&&'volunteer',r.has_selection==='yes'&&'selection',r.has_standards==='yes'&&'standards'].filter(Boolean),
     mapGoogle:q?'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(q):'',
     mapApple:q?'https://maps.apple.com/?q='+encodeURIComponent(q):''};
@@ -151,14 +153,22 @@ const recent=events.filter(e=>e.change).map(e=>({id:e.id,title:e.title,kind:e.ch
 // cut times for the standards actually used by events (data/standard-times.json: sex > age group > event > [name,time,...])
 const stdGroups=settings.standard_groups||{};
 const usedStd=new Set(events.flatMap(e=>e.standards.flatMap(x=>stdGroups[x.name]||[x.name])));
-const times={},allTimes={};
-if(fs.existsSync('data/standard-times.json')){const T=JSON.parse(fs.readFileSync('data/standard-times.json','utf8'));
-  for(const sx of Object.keys(T))for(const ag of Object.keys(T[sx]))for(const ev of Object.keys(T[sx][ag]))for(const r of T[sx][ag][ev])(((allTimes[sx]??={})[ag]??={})[ev]??={})[r[0]]=r[1];
-  for(const sx of Object.keys(T))for(const ag of Object.keys(T[sx]))for(const ev of Object.keys(T[sx][ag]))for(const r of T[sx][ag][ev])
-    if(usedStd.has(r[0])){(((times[sx]??={})[ag]??={})[ev]??={})[r[0]]=r[1]}}
+// Standards whose SCY and LCM cuts come from different documents (the NC short course and long course
+// championships, motivational ladders): a meet shows only its own course for these. All other standards
+// publish both columns on one sheet, so an LCM meet also shows its SCY cuts (and vice versa).
+const SINGLE_COURSE=['NC Senior','NC AG','B','BB','A','AA','AAA','AAAA'];
+// SCY cut times in data/standard-times.json, LCM in data/standard-times-lcm.json (both copied from the standards explorer data)
+const allTimes={};
+function loadTimes(file){const out={};if(!fs.existsSync(file))return out;const T=JSON.parse(fs.readFileSync(file,'utf8'));
+  for(const sx of Object.keys(T))for(const ag of Object.keys(T[sx]))for(const ev of Object.keys(T[sx][ag]))for(const r of T[sx][ag][ev]){
+    if(r[2]==='rec')continue;
+    (((allTimes[sx]??={})[ag]??={})[ev]??={})[r[0]]=r[1];
+    if(usedStd.has(r[0]))(((out[sx]??={})[ag]??={})[ev]??={})[r[0]]=r[1]}
+  return out}
+const times=loadTimes('data/standard-times.json'),timesLCM=loadTimes('data/standard-times-lcm.json');
 for(const st of standardsList){const names=stdGroups[st.name]||[st.name];
-  if(!names.some(n=>{for(const sx in allTimes)for(const ag in allTimes[sx])for(const ev in allTimes[sx][ag])if(ev&&allTimes[sx][ag][ev][n])return true}))warnings.push(`standard "${st.name}" has no cut times in data/standard-times.json`)}
-const payload={built:new Date().toISOString(),times,stdGroups,recent,standardsToolUrl:settings.standards_tool_url||'',groups:GROUPS,typeLabels:TYPE_LABEL,feeds,events};
+  if(!names.some(n=>{for(const sx in allTimes)for(const ag in allTimes[sx])for(const ev in allTimes[sx][ag])if(ev&&allTimes[sx][ag][ev][n])return true}))warnings.push(`standard "${st.name}" has no cut times in data/standard-times*.json`)}
+const payload={built:new Date().toISOString(),times,timesLCM,stdGroups,singleCourse:SINGLE_COURSE,recent,standardsToolUrl:settings.standards_tool_url||'',groups:GROUPS,typeLabels:TYPE_LABEL,feeds,events};
 fs.writeFileSync('site/events.json',JSON.stringify(payload,null,1));
 const widgetItems=[];
 for(const e of events){
